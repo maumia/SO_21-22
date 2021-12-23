@@ -174,3 +174,7 @@ ssize_t tfs_read(int fhandle, void *buffer, size_t len) {
     return (ssize_t)to_read;
 }
 
+int tfs_copy_to_external_fs(char const *source_path, char const *dest_path){
+    
+}
+
