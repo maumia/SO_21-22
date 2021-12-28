@@ -340,3 +340,14 @@ open_file_entry_t *get_open_file_entry(int fhandle) {
     }
     return &open_file_table[fhandle];
 }
+
+/*void *inode_get_block_from_offset(              , size_t offset){
+    size_t block_index = offset / 1024;
+    
+    if( block_index < 10){
+        return data_block_get( inode->i_data_block[block_index]);
+    }
+    int *indirect_block = data_block_get(inode->i_data_block);
+
+    return data_block_get(indirect_block[block_index]);
+}*/
