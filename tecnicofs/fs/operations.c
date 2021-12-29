@@ -174,14 +174,15 @@ ssize_t tfs_read(int fhandle, void *buffer, size_t len) {
     return (ssize_t)to_read;
 }
 
-int tfs_copy_to_external_fs(char const *source_path, char const *dest_path){
+/*int tfs_copy_to_external_fs(char const *source_path, char const *dest_path){
 
     if (tfs_lookup(*source_path) == -1){
         return -1;
     }
     
-    else if (tfs_lookup(*source_path) != -1 && tfs_lookup(*dest_path) == -1){
-        int handle = tfs_open(*dest_path, TFS_O_CREAT);
+    else if (tfs_open(*dest_path, 0)){
+        int handle_dest = tfs_open(*dest_path, TFS_O_CREAT);
+        char buffer[]
         tfs_write(handle, *source_path, inode->i )
 
 
@@ -192,5 +193,5 @@ int tfs_copy_to_external_fs(char const *source_path, char const *dest_path){
 
     return 0;
     
-}
+}*s/
 
