@@ -15,7 +15,7 @@ static char freeinode_ts[INODE_TABLE_SIZE];
 
 /* Data blocks */
 static char fs_data[BLOCK_SIZE * DATA_BLOCKS];
-static char free_blocks[DATA_BLOCKS];
+static char free_blocks[DIRECT_BLOCKS][DATA_BLOCKS];
 
 /* Volatile FS state */
 
@@ -68,9 +68,10 @@ void state_init() {
     for (size_t i = 0; i < INODE_TABLE_SIZE; i++) {
         freeinode_ts[i] = FREE;
     }
-
-    for (size_t i = 0; i < DATA_BLOCKS; i++) {
-        free_blocks[i] = FREE;
+    for (size_t j = 0; j < DIRECT_BLOCKS; j++){
+        for (size_t i = 0; i < DATA_BLOCKS; i++) {
+            free_blocks[j][i] = FREE;
+        }
     }
 
     for (size_t i = 0; i < MAX_OPEN_FILES; i++) {
@@ -105,7 +106,7 @@ int inode_create(inode_type n_type) {
                 /* Initializes directory (filling its block with empty
                  * entries, labeled with inumber==-1) */
                 int b = data_block_alloc();
-                if (b == -1) {
+                if (data_block_alloc() == -1) {
                     freeinode_ts[inumber] = FREE;
                     return -1;
                 }
@@ -151,7 +152,7 @@ int inode_delete(int inumber) {
     freeinode_ts[inumber] = FREE;
 
     if (inode_table[inumber].i_size > 0) {
-        if (data_block_free(inode_table[inumber].i_data_block) == -1) {
+        if (data_block_free(inode_table[inumber].i_data_block, inode_table[inumber].i_size) == -1) {
             return -1;
         }
     }
@@ -255,14 +256,19 @@ int find_in_dir(int inumber, char const *sub_name) {
  * Returns: block index if successful, -1 otherwise
  */
 int data_block_alloc() {
-    for (int i = 0; i < DATA_BLOCKS; i++) {
-        if (i * (int) sizeof(allocation_state_t) % BLOCK_SIZE == 0) {
-            insert_delay(); // simulate storage access delay to free_blocks
-        }
+    static int res[2];
+    for (int j = 0; j < DIRECT_BLOCKS; j++){
+        for (int i = 0; i < DATA_BLOCKS; i++) {
+            if (j * i * (int) sizeof(allocation_state_t) % BLOCK_SIZE == 0) {
+                insert_delay(); // simulate storage access delay to free_blocks
+            }
 
-        if (free_blocks[i] == FREE) {
-            free_blocks[i] = TAKEN;
-            return i;
+            if (free_blocks[j][i] == FREE) {
+                free_blocks[j][i] = TAKEN;
+                res[0]=j;
+                res[1]=i;
+                return res;
+            }
         }
     }
     return -1;
@@ -273,13 +279,13 @@ int data_block_alloc() {
  * 	- the block index
  * Returns: 0 if success, -1 otherwise
  */
-int data_block_free(int block_number) {
+int data_block_free(int direct_blocks, int block_number) {
     if (!valid_block_number(block_number)) {
         return -1;
     }
 
     insert_delay(); // simulate storage access delay to free_blocks
-    free_blocks[block_number] = FREE;
+    free_blocks[direct_blocks][block_number] = FREE;
     return 0;
 }
 
@@ -288,7 +294,7 @@ int data_block_free(int block_number) {
  * 	- Block's index
  * Returns: pointer to the first byte of the block, NULL otherwise
  */
-void *data_block_get(int block_number) {
+void *data_block_get(int block_number) {                                             /*devia dar erros*/
     if (!valid_block_number(block_number)) {
         return NULL;
     }
