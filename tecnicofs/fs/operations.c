@@ -57,7 +57,7 @@ int tfs_open(char const *name, int flags) {
         /* Trucate (if requested) */
         if (flags & TFS_O_TRUNC) {
             if (inode->i_size > 0) {
-                if (data_block_free(inode->i_data_block) == -1) {
+                if (data_block_free(inode->i_data_block[get_direct_block()], data_block_alloc()) == -1) {
                     return -1;
                 }
                 inode->i_size = 0;
@@ -118,10 +118,10 @@ ssize_t tfs_write(int fhandle, void const *buffer, size_t to_write) {
     if (to_write > 0) {
         if (inode->i_size == 0) {
             /* If empty file, allocate new block */
-            inode->i_data_block = data_block_alloc();
+            inode->i_data_block[get_direct_block()] = data_block_alloc();
         }
 
-        void *block = data_block_get(inode->i_data_block);
+        void *block = data_block_get(inode->i_data_block[get_direct_block()]);
         if (block == NULL) {
             return -1;
         }
@@ -159,7 +159,7 @@ ssize_t tfs_read(int fhandle, void *buffer, size_t len) {
         to_read = len;
     }
     if (to_read > 0) {
-        void *block = data_block_get(inode->i_data_block);
+        void *block = data_block_get(inode->i_data_block[get_direct_block()]);
         if (block == NULL) {
             return -1;
         }

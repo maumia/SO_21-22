@@ -58,4 +58,6 @@ int add_to_open_file_table(int inumber, size_t offset);
 int remove_from_open_file_table(int fhandle);
 open_file_entry_t *get_open_file_entry(int fhandle);
 
+int get_direct_block();
+
 #endif // STATE_H
