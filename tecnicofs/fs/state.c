@@ -373,4 +373,5 @@ int get_first_free_inode(inode_t inode){
             return i;
         }
     }
+    return -1;
 }
