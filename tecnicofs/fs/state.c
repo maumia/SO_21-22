@@ -153,7 +153,7 @@ int inode_delete(int inumber) {
 
     if (inode_table[inumber].i_size > 0) {
         if (data_block_free(inode_table[inumber].i_data_block[get_direct_block()],
-         inode_table[inumber].i_size) == -1) {
+         inode_table[inumber].i_size) == -1.0) {
             return -1;
         }
     }
