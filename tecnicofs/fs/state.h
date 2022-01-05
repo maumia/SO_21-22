@@ -23,7 +23,7 @@ typedef enum { T_FILE, T_DIRECTORY } inode_type;
 typedef struct {
     inode_type i_node_type;
     size_t i_size;
-    int i_data_block[10];
+    int i_data_block;
     /* in a real FS, more fields would exist here */
 } inode_t;
 
@@ -51,13 +51,11 @@ int add_dir_entry(int inumber, int sub_inumber, char const *sub_name);
 int find_in_dir(int inumber, char const *sub_name);
 
 int data_block_alloc();
-int data_block_free(int direct_blocks, int block_number);
+int data_block_free(int block_number);
 void *data_block_get(int block_number);
 
 int add_to_open_file_table(int inumber, size_t offset);
 int remove_from_open_file_table(int fhandle);
 open_file_entry_t *get_open_file_entry(int fhandle);
-
-int get_direct_block();
 
 #endif // STATE_H
