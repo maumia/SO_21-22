@@ -14,7 +14,7 @@ INCLUDES = $(addprefix -I, $(INCLUDE_DIRS))
 SOURCES  := $(wildcard */*.c)
 HEADERS  := $(wildcard */*.h)
 OBJECTS  := $(SOURCES:.c=.o)
-TARGET_EXECS := tests/test1
+TARGET_EXECS := $(patsubst %.c,%,$(wildcard tests/*.c))
 
 # VPATH is a variable used by Makefile which finds *sources* and makes them available throughout the codebase
 # vpath %.h <DIR> tells make to look for header files in <DIR>
@@ -61,10 +61,11 @@ fmt: $(SOURCES) $(HEADERS)
 
 
 
-# Note the lack of a rule.
-# make uses a set of default rules, one of which compiles C binaries
-# the CC, LD, CFLAGS and LDFLAGS are used in this rule
-tests/test1: tests/test1.o fs/operations.o fs/state.o
+tests/%: tests/%.o fs/operations.o fs/state.o
+	$(CCLD) $(LDFLAGS) -o $@ $^ -lpthread
+	
+%.o: %.c $(HEADERS)
+	$(CC) $(CFLAGS) -c -o $@ $<
 
 clean:
 	rm -f $(OBJECTS) $(TARGET_EXECS)
