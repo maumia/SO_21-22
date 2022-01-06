@@ -4,7 +4,7 @@
 # This makefile should be run from the *root* of the project
 
 CC ?= gcc
-LD ?= gcc
+CCLD ?= gcc
 
 # space separated list of directories with header files
 INCLUDE_DIRS := fs .
