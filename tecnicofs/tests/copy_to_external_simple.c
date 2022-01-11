@@ -26,7 +26,7 @@ int main() {
     assert(fp != NULL);
 
     assert(fread(to_read, sizeof(char), strlen(str), fp) == strlen(str));
-    
+
     assert(strcmp(str, to_read) == 0);
 
     assert(fclose(fp) != -1);
