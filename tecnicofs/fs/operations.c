@@ -5,7 +5,6 @@
 #include <string.h>
 
 #include <pthread.h>
-#include <errno.h>
 
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 #define MAX_FILE_SIZE ((10 + BLOCK_SIZE / sizeof(int)) * BLOCK_SIZE)
@@ -55,6 +54,7 @@ int tfs_open(char const *name, int flags) {
     if (inum >= 0) {
         /* The file already exists */
         inode_t *inode = inode_get(inum);
+        pthread_rwlock_rdlock(&(inode->lock));
         if (inode == NULL) {
             return -1;
         }
@@ -73,6 +73,7 @@ int tfs_open(char const *name, int flags) {
                 }
                 for (int i = 0; i < 11; i++) {
                     if (data_block_free(inode->i_data_blocks[i]) == -1) {
+                        pthread_rwlock_unlock(&(inode->lock));
                         return -1;
                     }
                 }
@@ -85,6 +86,7 @@ int tfs_open(char const *name, int flags) {
         } else {
             offset = 0;
         }
+        pthread_rwlock_unlock(&(inode->lock));
     } else if (flags & TFS_O_CREAT) {
         /* The file doesn't exist; the flags specify that it should be created*/
         /* Create inode */
@@ -115,13 +117,16 @@ int tfs_close(int fhandle) { return remove_from_open_file_table(fhandle); }
 
 ssize_t tfs_write(int fhandle, void const *buffer, size_t to_write) {
     open_file_entry_t *file = get_open_file_entry(fhandle);
+    pthread_mutex_lock(&(file->mtx));
     if (file == NULL) {
+        pthread_mutex_unlock(&(file->mtx));
         return -1;
     }
-
     /* From the open file table entry, we get the inode */
     inode_t *inode = inode_get(file->of_inumber);
+    pthread_rwlock_wrlock(&(inode->lock));
     if (inode == NULL) {
+        pthread_rwlock_unlock(&(inode->lock));
         return -1;
     }
 
@@ -187,19 +192,24 @@ ssize_t tfs_write(int fhandle, void const *buffer, size_t to_write) {
             inode->i_size = file->of_offset;
         }
     }
-
+    pthread_mutex_unlock(&(file->mtx));
+    pthread_rwlock_unlock(&(inode->lock));
     return (ssize_t)to_write;
 }
 
 ssize_t tfs_read(int fhandle, void *buffer, size_t len) {
     open_file_entry_t *file = get_open_file_entry(fhandle);
+    pthread_mutex_lock(&(file->mtx));
     if (file == NULL) {
+        pthread_mutex_unlock(&(file->mtx));
         return -1;
     }
 
     /* From the open file table entry, we get the inode */
     inode_t *inode = inode_get(file->of_inumber);
+    pthread_rwlock_rdlock(&(inode->lock));
     if (inode == NULL) {
+        pthread_rwlock_unlock(&(inode->lock));
         return -1;
     }
 
@@ -240,7 +250,8 @@ ssize_t tfs_read(int fhandle, void *buffer, size_t len) {
          * incremented accordingly */
         file->of_offset += to_read;
     }
-
+    pthread_mutex_unlock(&(file->mtx));
+    pthread_rwlock_unlock(&(inode->lock));
     return (ssize_t)to_read;
 }
 

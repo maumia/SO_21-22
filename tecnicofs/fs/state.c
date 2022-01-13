@@ -7,7 +7,6 @@
 #include <unistd.h>
 
 #include <pthread.h>
-#include <errno.h>
 
 /* Persistent FS state  (in reality, it should be maintained in secondary
  * memory; for simplicity, this project maintains it in primary memory) */
@@ -15,18 +14,15 @@
 /* I-node table */
 static inode_t inode_table[INODE_TABLE_SIZE];
 static char freeinode_ts[INODE_TABLE_SIZE];
-pthread_mutex_t mtx_freeinode_ts[INODE_TABLE_SIZE];
 
 /* Data blocks */
 static char fs_data[BLOCK_SIZE * DATA_BLOCKS];
 static char free_blocks[DATA_BLOCKS];
-pthread_mutex_t mtx_free_blocks[DATA_BLOCKS];
 
 /* Volatile FS state */
 
 static open_file_entry_t open_file_table[MAX_OPEN_FILES];
 static char free_open_file_entries[MAX_OPEN_FILES];
-pthread_mutex_t mtx_free_open_file_entries[MAX_OPEN_FILES];
 
 static inline bool valid_inumber(int inumber) {
     return inumber >= 0 && inumber < INODE_TABLE_SIZE;
@@ -73,30 +69,26 @@ static void insert_delay() {
 void state_init() {
     for (size_t i = 0; i < INODE_TABLE_SIZE; i++) {
         freeinode_ts[i] = FREE;
-        if (pthread_mutex_init(&mtx_freeinode_ts[i], NULL) != 0) {
-        perror("Error");
-		exit(EXIT_FAILURE);	
-        }
+        pthread_rwlock_init(&(inode_table[i].lock), NULL);
     }
 
     for (size_t i = 0; i < DATA_BLOCKS; i++) {
         free_blocks[i] = FREE;
-        if (pthread_mutex_init(&mtx_free_blocks[i], NULL) != 0) {
-            perror("Error");
-			exit(EXIT_FAILURE);	
-        }
     }
 
     for (size_t i = 0; i < MAX_OPEN_FILES; i++) {
         free_open_file_entries[i] = FREE;
-        if (pthread_mutex_init(&mtx_free_open_file_entries[i], NULL) != 0) {
-        perror("Error");
-		exit(EXIT_FAILURE);	
-        }
+        pthread_mutex_init(&(open_file_table[i].mtx), NULL);
     }
 }
 
-void state_destroy() { /* nothing to do */
+void state_destroy() {
+    for (size_t i = 0; i < INODE_TABLE_SIZE; i++) {
+        pthread_rwlock_destroy(&(inode_table[i].lock));
+    }
+    for (size_t i = 0; i < MAX_OPEN_FILES; i++) {
+        pthread_mutex_destroy(&(open_file_table[i].mtx));
+    }
 }
 
 /*
@@ -108,18 +100,13 @@ void state_destroy() { /* nothing to do */
  */
 int inode_create(inode_type n_type) {
     for (int inumber = 0; inumber < INODE_TABLE_SIZE; inumber++) {
-        if (pthread_rwlock_wrlock(&(inode_table[inumber].lock)) != 0) {
-            perror("Error");
-            exit(EXIT_FAILURE);
-        }
+
+        pthread_rwlock_wrlock(&(inode_table[inumber].lock));
+
         if ((inumber * (int)sizeof(allocation_state_t) % BLOCK_SIZE) == 0) {
             insert_delay(); // simulate storage access delay (to freeinode_ts)
         }
 
-        if (pthread_mutex_lock(&(mtx_freeinode_ts[inumber])) != 0) {
-            perror("Error");
-            exit(EXIT_FAILURE);
-        }
         /* Finds first free entry in i-node table */
         if (freeinode_ts[inumber] == FREE) {
             /* Found a free entry, so takes it for the new i-node*/
@@ -153,16 +140,9 @@ int inode_create(inode_type n_type) {
                 inode_table[inumber].i_size = 0;
                 for (int i = 0; i < 11; i++) {
                     inode_table[inumber].i_data_blocks[i] = -1;
-                    if (pthread_rwlock_init(&inode_table[i].lock, NULL) != 0) {
-                        perror("Error");
-                        exit(EXIT_FAILURE);	
-                    }
                 }
             }
-            if (pthread_mutex_unlock(&(mtx_freeinode_ts[inumber])) != 0) {
-                perror("Error");
-                exit(EXIT_FAILURE);
-            }
+            pthread_rwlock_unlock(&(inode_table[inumber].lock));
             return inumber;
         }
     }
@@ -180,10 +160,7 @@ int inode_delete(int inumber) {
     insert_delay();
     insert_delay();
 
-    if (pthread_rwlock_wrlock(&(inode_table[inumber].lock)) != 0) {
-        perror("Error");
-        exit(EXIT_FAILURE);
-    }
+    pthread_rwlock_wrlock(&(inode_table[inumber].lock));
 
     if (!valid_inumber(inumber) || freeinode_ts[inumber] == FREE) {
         return -1;
@@ -208,12 +185,7 @@ int inode_delete(int inumber) {
             }
         }
     }
-
-    if (pthread_rwlock_unlock(&(inode_table[inumber].lock)) != 0) {
-        perror("Error");
-        exit(EXIT_FAILURE);	
-    }
-
+    pthread_rwlock_unlock(&(inode_table[inumber].lock));
     return 0;
 }
 
