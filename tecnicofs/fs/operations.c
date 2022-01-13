@@ -67,6 +67,7 @@ int tfs_open(char const *name, int flags) {
                         data_block_get(inode->i_data_blocks[10]);
                     for (int i = 0; i < BLOCK_SIZE / sizeof(int); i++) {
                         if (data_block_free(indirect_block[i]) == -1) {
+                            pthread_rwlock_unlock(&(inode->lock));
                             return -1;
                         }
                     }
@@ -91,7 +92,10 @@ int tfs_open(char const *name, int flags) {
         /* The file doesn't exist; the flags specify that it should be created*/
         /* Create inode */
         inum = inode_create(T_FILE);
+        inode_t *inode = inode_get(inum);
+        pthread_rwlock_rdlock(&(inode->lock));
         if (inum == -1) {
+            pthread_rwlock_unlock(&(inode->lock));
             return -1;
         }
         /* Add entry in the root directory */
@@ -100,6 +104,7 @@ int tfs_open(char const *name, int flags) {
             return -1;
         }
         offset = 0;
+        pthread_rwlock_unlock(&(inode->lock));
     } else {
         return -1;
     }

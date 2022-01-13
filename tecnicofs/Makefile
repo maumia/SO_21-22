@@ -21,13 +21,15 @@ TARGET_EXECS := $(patsubst %.c,%,$(wildcard tests/*.c))
 vpath # clears VPATH
 vpath %.h $(INCLUDE_DIRS)
 
-CFLAGS = -std=c11 -D_POSIX_C_SOURCE=200809L
+CFLAGS = -std=c11 -D_POSIX_C_SOURCE=200809L -fsanitize=thread
 CFLAGS += $(INCLUDES)
 
 # Warnings
-CFLAGS += -fdiagnostics-color=always -Wall -Werror -Wextra -Wcast-align -Wconversion -Wfloat-equal -Wformat=2 -Wnull-dereference -Wshadow -Wsign-conversion -Wswitch-default -Wswitch-enum -Wundef -Wunreachable-code -Wunused -Wmisleading-indentation
+CFLAGS += -fdiagnostics-color=always -Wall -Werror -Wextra -Wcast-align -Wconversion -Wfloat-equal -Wformat=2 -Wnull-dereference -Wshadow -Wsign-conversion -Wswitch-default -Wswitch-enum -Wundef -Wunreachable-code -Wunused -Wmisleading-indentation -pthread
 # Warning suppressions
 CFLAGS += -Wno-sign-compare
+
+LDFLAGS += -pthread -fsanitize=thread
 
 # optional debug symbols: run make DEBUG=no to deactivate them
 ifneq ($(strip $(DEBUG)), no)
