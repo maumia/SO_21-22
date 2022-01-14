@@ -81,7 +81,7 @@ void state_init() {
         free_open_file_entries[i] = FREE;
         pthread_mutex_init(&(open_file_table[i].mtx), NULL);
     }
-    pthread_mutex_init(&free_open_file_entries_mtx);
+    pthread_mutex_init(&free_open_file_entries_mtx,NULL);
 }
 
 void state_destroy() {
