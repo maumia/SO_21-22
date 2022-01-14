@@ -23,6 +23,7 @@ static char free_blocks[DATA_BLOCKS];
 
 static open_file_entry_t open_file_table[MAX_OPEN_FILES];
 static char free_open_file_entries[MAX_OPEN_FILES];
+pthread_mutex_t free_open_file_entries_mtx; 
 
 static inline bool valid_inumber(int inumber) {
     return inumber >= 0 && inumber < INODE_TABLE_SIZE;
@@ -80,6 +81,7 @@ void state_init() {
         free_open_file_entries[i] = FREE;
         pthread_mutex_init(&(open_file_table[i].mtx), NULL);
     }
+    pthread_mutex_init(&free_open_file_entries_mtx);
 }
 
 void state_destroy() {
@@ -89,6 +91,7 @@ void state_destroy() {
     for (size_t i = 0; i < MAX_OPEN_FILES; i++) {
         pthread_mutex_destroy(&(open_file_table[i].mtx));
     }
+    pthread_mutex_destroy(&free_open_file_entries_mtx);
 }
 
 /*
@@ -349,17 +352,19 @@ void *data_block_get(int block_number) {
  * Returns: file handle if successful, -1 otherwise
  */
 int add_to_open_file_table(int inumber, size_t offset) {
+    pthread_mutex_lock(&free_open_file_entries_mtx);
     for (int i = 0; i < MAX_OPEN_FILES; i++) {
-        pthread_mutex_lock(&open_file_table[inumber].mtx);
+        pthread_mutex_lock(&open_file_table[i].mtx);
         if (free_open_file_entries[i] == FREE) {
             free_open_file_entries[i] = TAKEN;
             open_file_table[i].of_inumber = inumber;
             open_file_table[i].of_offset = offset;
-            pthread_mutex_unlock(&open_file_table[inumber].mtx);
+            pthread_mutex_unlock(&free_open_file_entries_mtx);
+            pthread_mutex_unlock(&open_file_table[i].mtx);
             return i;
         }
     }
-    pthread_mutex_unlock(&open_file_table[inumber].mtx);
+    pthread_mutex_unlock(&free_open_file_entries_mtx);
     return -1;
 }
 
@@ -386,8 +391,11 @@ int remove_from_open_file_table(int fhandle) {
  * Returns: pointer to the entry if sucessful, NULL otherwise
  */
 open_file_entry_t *get_open_file_entry(int fhandle) {
+    pthread_mutex_lock(&open_file_table[fhandle].mtx);
     if (!valid_file_handle(fhandle)) {
+        pthread_mutex_unlock(&open_file_table[fhandle].mtx);
         return NULL;
     }
+     pthread_mutex_unlock(&open_file_table[fhandle].mtx);
     return &open_file_table[fhandle];
 }
