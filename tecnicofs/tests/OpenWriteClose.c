@@ -93,7 +93,7 @@ int main() {
 
     assert(tfs_destroy() != -1);
   
-	puts("Sucessful test");
+	puts("Sucessful test OpenWriteClose");
 
     return 0;
 }
