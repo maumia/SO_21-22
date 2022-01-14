@@ -56,6 +56,7 @@ int tfs_open(char const *name, int flags) {
         inode_t *inode = inode_get(inum);
         pthread_rwlock_rdlock(&(inode->lock));
         if (inode == NULL) {
+            pthread_rwlock_unlock(&(inode->lock));
             return -1;
         }
 
@@ -101,6 +102,7 @@ int tfs_open(char const *name, int flags) {
         /* Add entry in the root directory */
         if (add_dir_entry(ROOT_DIR_INUM, inum, name + 1) == -1) {
             inode_delete(inum);
+            pthread_rwlock_unlock(&(inode->lock));
             return -1;
         }
         offset = 0;

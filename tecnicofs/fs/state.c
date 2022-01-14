@@ -375,13 +375,16 @@ int add_to_open_file_table(int inumber, size_t offset) {
  */
 int remove_from_open_file_table(int fhandle) {
     pthread_mutex_lock(&open_file_table[fhandle].mtx);
+    pthread_mutex_lock(&free_open_file_entries_mtx);
     if (!valid_file_handle(fhandle) ||
         free_open_file_entries[fhandle] != TAKEN) {
         pthread_mutex_unlock(&open_file_table[fhandle].mtx);
+        pthread_mutex_unlock(&free_open_file_entries_mtx);
         return -1;
     }
     free_open_file_entries[fhandle] = FREE;
     pthread_mutex_unlock(&open_file_table[fhandle].mtx);
+    pthread_mutex_unlock(&free_open_file_entries_mtx);
     return 0;
 }
 

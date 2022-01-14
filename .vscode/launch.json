@@ -8,7 +8,7 @@
             "name": "(gdb) Launch",
             "type": "cppdbg",
             "request": "launch",
-            "program": "/home/ricas/Ist/SO/P/tecnicofs/tests/owc_files",
+            "program": "/home/tiagodinis/Documents/GitHub/P/tecnicofs/tests/open_files",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${fileDirname}",
