@@ -52,16 +52,16 @@ int main() {
     */
 
     type_tfs_write new_write[NUM_THREADS];
-    new_write[0].name = "/f0";
-	new_write[1].name = "/f1";
-	new_write[2].name = "/f2";
-	new_write[3].name = "/f3";
-	new_write[4].name = "/f4";
-    new_write[0].to_write = 10;
-    new_write[1].to_write = 10;
-    new_write[2].to_write = 10;
-    new_write[3].to_write = 10;
-    new_write[4].to_write = 10;
+    new_write[0].name  =  "/f0";
+	new_write[1].name  =  "/f1";
+	new_write[2].name  =  "/f2";
+	new_write[3].name  =  "/f3";
+	new_write[4].name  =  "/f4";
+    new_write[0].to_write  = 10;
+    new_write[1].to_write  = 10;
+    new_write[2].to_write  = 10;
+    new_write[3].to_write  = 10;
+    new_write[4].to_write  = 10;
     new_write[0].buffer = "ola";
     new_write[1].buffer = "ola";
     new_write[2].buffer = "ola";
@@ -80,9 +80,7 @@ int main() {
 		pthread_create(&tid[j], NULL, write, (void *)&new_write[j]);
 	}
 
-    for( int j = 0; j < NUM_THREADS; j++){
-		pthread_create(&tid[j], NULL, write, (void *)&new_write[j]);
-	}
+
 
 	for( int j = 0; j < NUM_THREADS; j++ ){
 		pthread_join(tid[j], NULL);
