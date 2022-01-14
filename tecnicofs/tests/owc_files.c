@@ -8,26 +8,29 @@
 /**
    This test creates a max number of 9 threads and verifies if tecnico_fs can open,create and write multiple files in paralell.
  */
-
+/*
 typedef struct{
     char *name;
     int flags;
     int return_value;
 }type_tfs_open;
+*/
 
 typedef struct{
     char *name;
     int flags;
     void const *buffer;
     size_t to_write;
-    long int return_value;
+    int return_value;
 }type_tfs_write;
 
+/*
 void* open( void* args){
     type_tfs_open *settings = (type_tfs_open*) args;
     settings->return_value = tfs_open(settings->name,settings->flags);
     return NULL;
 }
+*/
 
 void* write(void* args){
     type_tfs_write *settings = (type_tfs_write*) args;
@@ -74,11 +77,11 @@ int main() {
 
 	assert(tfs_init() != -1);
 	for( int j = 0; j < NUM_THREADS; j++){
-		pthread_create(&tid[j], NULL, open, (void *)&new_write[j]);
+		pthread_create(&tid[j], NULL, write, (void *)&new_write[j]);
 	}
 
     for( int j = 0; j < NUM_THREADS; j++){
-		pthread_create(&tid[j], NULL, open, (void *)&new_write[j]);
+		pthread_create(&tid[j], NULL, write, (void *)&new_write[j]);
 	}
 
 	for( int j = 0; j < NUM_THREADS; j++ ){
@@ -87,7 +90,7 @@ int main() {
 
 	for( int j = 0; j < NUM_THREADS; j++){
 		assert(new_write[j].return_value >= 0 );
-		assert(tfs_close( new_write[j].return_value ) != -1 );
+		assert(tfs_close(new_write[j].return_value) != -1 );
 	}
 
     assert(tfs_destroy() != -1);
