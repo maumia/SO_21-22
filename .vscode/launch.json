@@ -8,7 +8,7 @@
             "name": "(gdb) Launch",
             "type": "cppdbg",
             "request": "launch",
-            "program": "/home/ricas/Ist/SO/P/tecnicofs/tests/test1",
+            "program": "/home/ricas/Ist/SO/P/tecnicofs/tests/",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${fileDirname}",
