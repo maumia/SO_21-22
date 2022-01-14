@@ -34,7 +34,7 @@ void* open( void* args){
 
 void* write(void* args){
     type_tfs_write *settings = (type_tfs_write*) args;
-    settings ->return_value = tfs_write(settings->flags, settings->buffer,settings->to_write);
+    settings ->return_value =(int)tfs_write(settings->flags, settings->buffer,settings->to_write);
     return NULL;
 }
 
