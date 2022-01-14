@@ -93,7 +93,7 @@ int main() {
 
     assert(tfs_destroy() != -1);
   
-	puts("Sucessful test owc_files");
+	puts("Sucessful test");
 
     return 0;
 }
