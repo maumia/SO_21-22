@@ -129,6 +129,7 @@ int inode_create(inode_type n_type) {
                 dir_entry_t *dir_entry = (dir_entry_t *)data_block_get(b);
                 if (dir_entry == NULL) {
                     freeinode_ts[inumber] = FREE;
+                    pthread_rwlock_unlock(&inode_table[inumber].lock);
                     return -1;
                 }
 
@@ -150,6 +151,7 @@ int inode_create(inode_type n_type) {
 }
 
 /*
+
  * Deletes the i-node.
  * Input:
  *  - inumber: i-node's number
@@ -175,12 +177,14 @@ int inode_delete(int inumber) {
             for (int i = 0; i < BLOCK_SIZE / sizeof(int); i++) {
                 if (indirect_block[i] != -1 &&
                     data_block_free(indirect_block[i]) == -1) {
+                    pthread_rwlock_unlock(&inode_table[inumber].lock);
                     return -1;
                 }
             }
         }
         for (int i = 0; i < 11; i++) {
             if (data_block_free(inode_table[inumber].i_data_blocks[i]) == -1) {
+                pthread_rwlock_unlock(&inode_table[inumber].lock);
                 return -1;
             }
         }
@@ -196,11 +200,14 @@ int inode_delete(int inumber) {
  * Returns: pointer if successful, NULL if failed
  */
 inode_t *inode_get(int inumber) {
+    pthread_rwlock_rdlock(&inode_table[inumber].lock);
     if (!valid_inumber(inumber)) {
+        pthread_rwlock_unlock(&inode_table[inumber].lock);
         return NULL;
     }
 
     insert_delay(); // simulate storage access delay to i-node
+    pthread_rwlock_unlock(&inode_table[inumber].lock);
     return &inode_table[inumber];
 }
 
@@ -213,16 +220,20 @@ inode_t *inode_get(int inumber) {
  * Returns: SUCCESS or FAIL
  */
 int add_dir_entry(int inumber, int sub_inumber, char const *sub_name) {
+    pthread_rwlock_rdlock(&inode_table[inumber].lock);
     if (!valid_inumber(inumber) || !valid_inumber(sub_inumber)) {
+        pthread_rwlock_unlock(&inode_table[inumber].lock);
         return -1;
     }
 
     insert_delay(); // simulate storage access delay to i-node with inumber
     if (inode_table[inumber].i_node_type != T_DIRECTORY) {
+        pthread_rwlock_unlock(&inode_table[inumber].lock);
         return -1;
     }
 
     if (strlen(sub_name) == 0) {
+        pthread_rwlock_unlock(&inode_table[inumber].lock);
         return -1;
     }
 
@@ -230,6 +241,7 @@ int add_dir_entry(int inumber, int sub_inumber, char const *sub_name) {
     dir_entry_t *dir_entry =
         (dir_entry_t *)data_block_get(inode_table[inumber].i_data_blocks[0]);
     if (dir_entry == NULL) {
+        pthread_rwlock_unlock(&inode_table[inumber].lock);
         return -1;
     }
 
@@ -239,10 +251,11 @@ int add_dir_entry(int inumber, int sub_inumber, char const *sub_name) {
             dir_entry[i].d_inumber = sub_inumber;
             strncpy(dir_entry[i].d_name, sub_name, MAX_FILE_NAME - 1);
             dir_entry[i].d_name[MAX_FILE_NAME - 1] = 0;
+            pthread_rwlock_unlock(&inode_table[inumber].lock);
             return 0;
         }
     }
-
+    pthread_rwlock_unlock(&inode_table[inumber].lock);
     return -1;
 }
 
@@ -254,8 +267,10 @@ int add_dir_entry(int inumber, int sub_inumber, char const *sub_name) {
  */
 int find_in_dir(int inumber, char const *sub_name) {
     insert_delay(); // simulate storage access delay to i-node with inumber
+    pthread_rwlock_rdlock(&inode_table[inumber].lock);
     if (!valid_inumber(inumber) ||
         inode_table[inumber].i_node_type != T_DIRECTORY) {
+        pthread_rwlock_unlock(&inode_table[inumber].lock);
         return -1;
     }
 
@@ -263,17 +278,20 @@ int find_in_dir(int inumber, char const *sub_name) {
     dir_entry_t *dir_entry =
         (dir_entry_t *)data_block_get(inode_table[inumber].i_data_blocks[0]);
     if (dir_entry == NULL) {
+        pthread_rwlock_unlock(&inode_table[inumber].lock);
         return -1;
     }
 
     /* Iterates over the directory entries looking for one that has the target
      * name */
-    for (int i = 0; i < MAX_DIR_ENTRIES; i++)
+    for (int i = 0; i < MAX_DIR_ENTRIES; i++){
         if ((dir_entry[i].d_inumber != -1) &&
             (strncmp(dir_entry[i].d_name, sub_name, MAX_FILE_NAME) == 0)) {
+            pthread_rwlock_unlock(&inode_table[inumber].lock);
             return dir_entry[i].d_inumber;
         }
-
+    }
+    pthread_rwlock_unlock(&inode_table[inumber].lock);
     return -1;
 }
 
