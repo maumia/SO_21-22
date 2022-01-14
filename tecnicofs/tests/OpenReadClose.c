@@ -19,7 +19,7 @@ typedef struct{
 
 void* read(void* args){
     type_tfs_read *settings = (type_tfs_read*) args;
-    settings ->return_value =(int)tfs_read(settings->flags, settings->buffer,settings->to_read);
+    settings ->return_value =(int)tfs_read(settings->flags, &settings->buffer,settings->to_read);
     return NULL;
 }
 
@@ -38,13 +38,13 @@ int main() {
     new_read[2].to_read  = 10;
     new_read[3].to_read  = 10;
     new_read[4].to_read  = 10;
-    /*
-    new_read[0].buffer = "ola";
-    new_read[1].buffer = "ola";
-    new_read[2].buffer = "ola";
-    new_read[3].buffer = "ola";
-    new_read[4].buffer = "ola";
-    */
+    
+    new_read[0].buffer  = 0;
+    new_read[1].buffer = 0;
+    new_read[2].buffer = 0;
+    new_read[3].buffer = 0;
+    new_read[4].buffer = 0;
+    
 
     for(int i = 0; i < NUM_THREADS; i++){
                       
