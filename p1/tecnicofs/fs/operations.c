@@ -80,6 +80,7 @@ int tfs_open(char const *name, int flags) {
                     }
                 }
                 inode->i_size = 0;
+                pthread_rwlock_unlock(&(inode->lock));
             }
         }
         /* Determine initial offset */

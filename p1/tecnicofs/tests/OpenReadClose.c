@@ -70,7 +70,7 @@ int main() {
 
     assert(tfs_destroy() != -1);
   
-	puts("Sucessful test");
+	puts("Sucessful test OpenReadClose");
 
     return 0;
 }
