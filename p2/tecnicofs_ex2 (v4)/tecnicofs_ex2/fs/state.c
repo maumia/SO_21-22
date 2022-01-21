@@ -21,6 +21,7 @@ static char free_blocks[DATA_BLOCKS];
 
 static open_file_entry_t open_file_table[MAX_OPEN_FILES];
 static char free_open_file_entries[MAX_OPEN_FILES];
+static int var;
 
 static inline bool valid_inumber(int inumber) {
     return inumber >= 0 && inumber < INODE_TABLE_SIZE;
@@ -306,6 +307,7 @@ int add_to_open_file_table(int inumber, size_t offset) {
             free_open_file_entries[i] = TAKEN;
             open_file_table[i].of_inumber = inumber;
             open_file_table[i].of_offset = offset;
+            var++;
             return i;
         }
     }
@@ -323,6 +325,7 @@ int remove_from_open_file_table(int fhandle) {
         return -1;
     }
     free_open_file_entries[fhandle] = FREE;
+    var--;
     return 0;
 }
 
@@ -336,4 +339,8 @@ open_file_entry_t *get_open_file_entry(int fhandle) {
         return NULL;
     }
     return &open_file_table[fhandle];
+}
+
+int ret_var(){
+    return var;
 }
