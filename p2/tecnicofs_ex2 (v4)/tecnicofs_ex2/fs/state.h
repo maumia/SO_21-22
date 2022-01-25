@@ -1,5 +1,8 @@
 #ifndef STATE_H
 #define STATE_H
+#define LOG(fmt,...) fprintf(stderr, "[LOG]\t %s: %d" | "fmt\n", __FILE__, __LINE__, __VA_ARGS__);
+#define INFO(fmt,...) fprintf(stderr, "[INFO]\t %s: %d" | "fmt\n", __FILE__, __LINE__, __VA_ARGS__);
+#define ERR(fmt,...) fprintf(stderr, "[ERR]\t %s: %d" | "fmt\n", __FILE__, __LINE__, __VA_ARGS__);
 
 #include "config.h"
 
