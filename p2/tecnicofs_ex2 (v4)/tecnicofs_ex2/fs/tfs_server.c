@@ -1,4 +1,36 @@
 #include "operations.h"
+#define SES_ID 1;
+
+
+int svfileopen;
+int ses_id[SES_ID];
+
+int ses(){
+    for(int i= 0; i < SES_ID; i++){
+        if (ses_id[i] == -1){ return i;};
+    }
+    printf("Erro ao encontrar ses_id");
+    return -2;
+
+}
+
+
+void svmount(){
+    int id;
+    void* mbuffer = (void*) malloc(40);
+    read(svfileopen, mbuffer, 40);
+    int fcl = open(mbuffer, O_WRONLY);
+    if (fcl != 1){
+        exit(3);
+    }
+    if((id = ses()) == -2){
+        write(fcl, id, sizeof(int))
+
+
+    }
+
+}
+
 
 #define S 1
 
@@ -19,32 +51,34 @@ int main(int argc, char **argv) {
 
     char *pipename = argv[1];
     printf("Starting TecnicoFS server with pipe called %s\n", pipename);
-
-    /* TO DO */
-    /*int client_fd = open(client_pipe_path, O_WRONLY);
-    if(client_fd == -1){
-        return -1;
-    }*/
-
-    int server_fd = open(pipename, O_RDONLY);
-    if( server_fd == -1){
-        return -1;
+    if(mkfifo(pipename, 0777) == -1){
+        exit(1);
     }
-    for(int i = 0; i < S; i++){
-        if(read(server_fd, &client[i].client_pipe, sizeof(char)*40) == -1){
-            return -1;
+
+    svfileopen = open(pipename, O_RDONLY);
+    char buffer[2] = "\0";
+    tfs_init();
+    int bufread; 
+
+    
+    while(1){
+        bufread = read(svfileopen, buffer, 1);
+        if(bufread != 1){
+            exit(2);
         }
-        client[i].session_id = actual_session;
-        actual_session += 1;
-    }
-
-    int client_fd = open(client[actual_session-1].client_pipe, O_WRONLY);
-    if( client_fd == -1){
-        return -1;
-    }
-
-    while(true){
+        switch (atoi(buffer))
+        {
+        case TFS_OP_CODE_MOUNT :
+            svmount();
+            break;
         
+        default:
+            break;
+        }
+
+
+
     }
-    return 0;
+
+    
 }
