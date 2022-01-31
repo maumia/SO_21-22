@@ -1,6 +1,7 @@
 #include "operations.h"
 #include "common/common.h"
 #define SES_ID 1
+#define S 1
 
 
 int svfileopen;
