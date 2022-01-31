@@ -28,7 +28,10 @@ int tfs_mount(char const *client_pipe_path, char const *server_pipe_path) {
     if( server_fd == -1){
         return -1;
     }
-
+    char* mess = (char*)malloc(41);
+    sprintf(mess, "%d", TFS_OP_CODE_MOUNT);
+    memcopy(mess + 1, client_pipe_path, MAX_INPUT);
+    write(server_fd, mess, 41);
     return 0;
 }
 
