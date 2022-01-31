@@ -87,7 +87,7 @@ int main(int argc, char **argv) {
         switch (atoi(buffer))
         {
         case TFS_OP_CODE_MOUNT :
-            svmount();
+            tfs_sv_mount();
             break;
         
         case TFS_OP_CODE_UNMOUNT :
