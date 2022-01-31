@@ -1,5 +1,5 @@
 #include "operations.h"
-#define SES_ID 1;
+#define SES_ID 1
 
 
 int svfileopen;
@@ -15,7 +15,7 @@ int ses(){
 }
 
 
-void svmount(){
+void tfs_sv_mount(){
     int id;
     void* mbuffer = (void*) malloc(40);
     read(svfileopen, mbuffer, 40);
@@ -24,13 +24,28 @@ void svmount(){
         exit(3);
     }
     if((id = ses()) == -2){
-        write(fcl, id, sizeof(int))
 
+        write(fcl, id, sizeof(int));
+        free(mbuffer);
 
+    }
+
+    else{
+        
+        ses_id[id] = fcl;
+        write(fcl, id, sizeof(int));
+        free(mbuffer);
+        
     }
 
 }
 
+void tfs_sv_unmount(){
+
+
+
+
+}
 
 #define S 1
 
@@ -72,9 +87,38 @@ int main(int argc, char **argv) {
             svmount();
             break;
         
-        default:
+        case TFS_OP_CODE_UNMOUNT :
+
             break;
+
+        case TFS_OP_CODE_OPEN : 
+            break;
+        
+        case TFS_OP_CODE_CLOSE :
+            break;
+
+        case TFS_OP_CODE_WRITE : 
+            break;
+        
+        case TFS_OP_CODE_READ :
+            break;
+
+        case TFS_OP_CODE_SHUTDOWN_AFTER_ALL_CLOSED :
+            break;
+        
+        
+        
+        
+        
+        
+        
+        
         }
+        
+
+
+        
+        
 
 
 

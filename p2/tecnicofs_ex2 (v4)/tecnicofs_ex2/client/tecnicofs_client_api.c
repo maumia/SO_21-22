@@ -15,6 +15,7 @@ static char bufferPipe[MAX_INPUT];
 
 int tfs_mount(char const *client_pipe_path, char const *server_pipe_path) {
     /* TODO: Implement this */
+    int id;
     if( mkfifo(client_pipe_path, 0777) == -1 ) {
         if (errno != EEXIST){                         //verifica que  o erro não é o named pipe já existir
             return -1;
@@ -28,10 +29,15 @@ int tfs_mount(char const *client_pipe_path, char const *server_pipe_path) {
     if( server_fd == -1){
         return -1;
     }
-    char* mess = (char*)malloc(41);
+    char* mess = (char*) malloc(41);
     sprintf(mess, "%d", TFS_OP_CODE_MOUNT);
     memcopy(mess + 1, client_pipe_path, MAX_INPUT);
     write(server_fd, mess, 41);
+    read(client_fd, &id , sizeof(int));
+
+
+
+
     return 0;
 }
 
