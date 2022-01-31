@@ -12,42 +12,52 @@
 #define MAX_INPUT 40
 
 static char bufferPipe[MAX_INPUT];
+int id; //client id
+int client_fd;
+int server_fd;
 
 int tfs_mount(char const *client_pipe_path, char const *server_pipe_path) {
     /* TODO: Implement this */
-    int id;
     if( mkfifo(client_pipe_path, 0777) == -1 ) {
         if (errno != EEXIST){                         //verifica que  o erro não é o named pipe já existir
             return -1;
         }
     }
-    int client_fd = open(client_pipe_path, O_RDONLY);
+    client_fd = open(client_pipe_path, O_RDONLY);
     if(client_fd == -1){
         return -1;
     }
-    int server_fd = open(server_pipe_path, O_WRONLY);
+    server_fd = open(server_pipe_path, O_WRONLY);
     if( server_fd == -1){
         return -1;
     }
     char* mess = (char*) malloc(41);
     sprintf(mess, "%d", TFS_OP_CODE_MOUNT);
+    memcpy(mess + 1, client_pipe_path, MAX_INPUT);
+    write(server_fd, mess, 41);
+    read(client_fd, &id , sizeof(int));
+    return id;
+}
+
+int tfs_unmount() {
+    int err;
+    char* mess = (char*) malloc(1 + sizeof(int));
+    sprintf(mess, "%d", TFS_OP_CODE_UNMOUNT);
+    memcpy(mess + 1, &id, sizeof(int));
+    write(server_fd, mess, 1 + sizeof(int));
+    read(client_fd, &err , sizeof(int));
+
+    return err;
+}
+
+int tfs_open(char const *name, int flags) {
+
+    char* mess = (char*) malloc(41);
+    sprintf(mess, "%d", TFS_OP_CODE_UNMOUNT);
     memcopy(mess + 1, client_pipe_path, MAX_INPUT);
     write(server_fd, mess, 41);
     read(client_fd, &id , sizeof(int));
 
-
-
-
-    return 0;
-}
-
-int tfs_unmount() {
-    /* TODO: Implement this */
-    return -1;
-}
-
-int tfs_open(char const *name, int flags) {
-    /* TODO: Implement this */
     return -1;
 }
 

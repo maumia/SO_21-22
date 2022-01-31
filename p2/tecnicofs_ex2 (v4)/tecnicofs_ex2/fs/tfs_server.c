@@ -1,4 +1,5 @@
 #include "operations.h"
+#include "common/common.h"
 #define SES_ID 1
 
 
@@ -42,9 +43,10 @@ void tfs_sv_mount(){
 
 void tfs_sv_unmount(){
 
-
-
-
+    int id;
+    read(svfileopen, &id,sizeof(int));
+    int fcl = ses_id[id];
+    close(fcl);
 }
 
 #define S 1
