@@ -28,6 +28,11 @@ int tfs_mount(char const *client_pipe_path, char const *server_pipe_path) {
     if( server_fd == -1){
         return -1;
     }
+    char send_client_pipe[MAX_INPUT] = client_pipe_path;                                // possivel erro (passar para char)
+    if(write(server_fd, &send_client_pipe, sizeof(send_client_pipe)) == -1){
+        return -1;
+    }
+
 
     return 0;
 }
