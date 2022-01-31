@@ -11,6 +11,8 @@ int main(int argc, char **argv) {
     printf("Starting TecnicoFS server with pipe called %s\n", pipename);
 
     /* TO DO */
-
+    while(true){
+        
+    }
     return 0;
 }
