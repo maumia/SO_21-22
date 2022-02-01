@@ -106,7 +106,7 @@ ssize_t tfs_read(int fhandle, void *buffer, size_t len) {
 }
 
 int tfs_shutdown_after_all_closed() {
-    char* mess = (char*) malloc(1 + 1 ; //40 DO CHAR + 1 DO OP_CODE + 1 DO ID + 1 DA FLAG
+    char* mess = (char*) malloc(1 + 1); //40 DO CHAR + 1 DO OP_CODE + 1 DO ID + 1 DA FLAG
     sprintf(mess, "%d", TFS_OP_CODE_READ);
     memcpy(mess + 1, &id, sizeof(int));
 
