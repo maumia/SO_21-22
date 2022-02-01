@@ -10,7 +10,7 @@ typedef struct{
 
 
 int svfileopen;
-int ses_id[SES_ID];
+int ses_id[SES_ID]; 
 
 int ses(){
     for(int i= 0; i < SES_ID; i++){
@@ -24,12 +24,15 @@ int ses(){
 
 void tfs_sv_mount(){
     int id;
-    void* mbuffer = (void*) malloc(40);
+    void* mbuffer = (void*) malloc(sizeof(char)*40);
     read(svfileopen, mbuffer, 40);
     int fcl = open(mbuffer, O_WRONLY);
     if (fcl != 1){
-        exit(3);
+
+        exit(2);
+
     }
+    
     if((id = ses()) == -2){
 
         write(fcl, id, sizeof(int));
@@ -79,8 +82,9 @@ int main(int argc, char **argv) {
 
     char *pipename = argv[1];
     printf("Starting TecnicoFS server with pipe called %s\n", pipename);
+    unlink(pipename);
     if(mkfifo(pipename, 0777) == -1){
-        exit(1);
+        exit(-1);
     }
 
     svfileopen = open(pipename, O_RDONLY);
