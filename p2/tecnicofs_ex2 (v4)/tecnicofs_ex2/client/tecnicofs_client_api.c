@@ -17,7 +17,7 @@ int client_fd;
 int server_fd;
 
 int tfs_mount(char const *client_pipe_path, char const *server_pipe_path) {
-    /* TODO: Implement this */
+    
     if( mkfifo(client_pipe_path, 0777) == -1 ) {
         if (errno != EEXIST){                         //verifica que  o erro não é o named pipe já existir
             return -1;
@@ -40,6 +40,7 @@ int tfs_mount(char const *client_pipe_path, char const *server_pipe_path) {
 }
 
 int tfs_unmount() {
+    
     int err;
     char* mess = (char*) malloc(1 + sizeof(int));
     sprintf(mess, "%d", TFS_OP_CODE_UNMOUNT);
@@ -52,27 +53,50 @@ int tfs_unmount() {
 
 int tfs_open(char const *name, int flags) {
 
-    char* mess = (char*) malloc(41);
-    sprintf(mess, "%d", TFS_OP_CODE_UNMOUNT);
-    memcopy(mess + 1, client_pipe_path, MAX_INPUT);
-    write(server_fd, mess, 41);
+    char* mess = (char*) malloc(MAX_INPUT + 1 + 1 + 1); //40 DO CHAR + 1 DO OP_CODE + 1 DO ID + 1 DA FLAG
+    sprintf(mess, "%d", TFS_OP_CODE_OPEN);
+    memcpy(mess + 1, &id, sizeof(int));
+    memcpy(mess + 2, &name, MAX_INPUT);
+    memcpy(mess + 2 + MAX_INPUT, &flags, sizeof(int));
+    
+    write(server_fd, mess, MAX_INPUT + 1 + 1 + 1);
     read(client_fd, &id , sizeof(int));
 
     return -1;
 }
 
 int tfs_close(int fhandle) {
-    /* TODO: Implement this */
+    char* mess = (char*) malloc(MAX_INPUT + 1 + 1); //40 DO CHAR + 1 DO OP_CODE + 1 DO ID + 1 DA FLAG
+    sprintf(mess, "%d", TFS_OP_CODE_CLOSE);
+    memcpy(mess + 1, &id, sizeof(int));
+    memcpy(mess + 2, &fhandle, MAX_INPUT);
+    
+    write(server_fd, mess, MAX_INPUT + 1 + 1);
+    read(client_fd, &id , sizeof(int));
+
     return -1;
 }
 
 ssize_t tfs_write(int fhandle, void const *buffer, size_t len) {
-    /* TODO: Implement this */
+    
+    char* mess = (char*) malloc(MAX_INPUT + 1 + 1 + 1 + len); //40 DO CHAR + 1 DO OP_CODE + 1 DO ID + 1 DA FLAG
+    sprintf(mess, "%d", TFS_OP_CODE_WRITE);
+    memcpy(mess + 1, &id, sizeof(int));
+    memcpy(mess + 2, &fhandle, MAX_INPUT);
+    memcpy(mess + 3, len, sizeof(int));
+    memcpy(mess + len, &buffer, len);
+
+    write(server_fd, mess, MAX_INPUT + 1 + 1 + 1 + len);
+    read(client_fd, &id , sizeof(int));
     return -1;
 }
 
 ssize_t tfs_read(int fhandle, void *buffer, size_t len) {
-    /* TODO: Implement this */
+    
+
+
+
+
     return -1;
 }
 

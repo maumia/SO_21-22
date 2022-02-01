@@ -3,6 +3,11 @@
 #define SES_ID 1
 #define S 1
 
+typedef struct{
+    int session_id;
+    char client_pipe[40];
+}client_t;
+
 
 int svfileopen;
 int ses_id[SES_ID];
@@ -50,12 +55,17 @@ void tfs_sv_unmount(){
     close(fcl);
 }
 
-#define S 1
+void tfs_sv_open(char const *name, int flags){
 
-typedef struct{
-    int session_id;
-    char client_pipe[40];
-}client_t;
+    int id;
+    read(svfileopen, &id, sizeof(int));
+    int fcl = ses_id[id];
+    tfs_open(name,flags);
+
+
+
+}
+
 
 int main(int argc, char **argv) {
 
