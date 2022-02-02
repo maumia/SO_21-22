@@ -91,7 +91,7 @@ int main(int argc, char **argv) {
         exit(-1);
     }
 
-    printf("Pipe open")
+    printf("Pipe open");
     svfileopen = open(pipename, O_RDONLY);
     char buffer[2] = "\0";
     tfs_init();
