@@ -1,4 +1,5 @@
 #include "operations.h"
+#include <fcntl.h>
 #include "common/common.h"
 #define SES_ID 1
 #define S 1
