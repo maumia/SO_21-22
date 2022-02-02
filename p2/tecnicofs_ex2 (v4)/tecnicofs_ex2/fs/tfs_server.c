@@ -85,7 +85,9 @@ int main(int argc, char **argv) {
 
     char *pipename = argv[1];
     printf("Starting TecnicoFS server with pipe called %s\n", pipename);
+    printf("Pipe open1\n");
     unlink(pipename);
+    printf("Pipe open\n");
     if(mkfifo(pipename, 0777) == -1){
         printf("Error creating pipe");
         exit(-1);
