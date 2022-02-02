@@ -17,7 +17,7 @@ int ses(){
     for(int i= 0; i < SES_ID; i++){
         if (ses_id[i] == -1){ return i;};
     }
-    printf("Erro ao encontrar ses_id");
+        printf("Session not found");
     return -2;
 
 }
@@ -30,12 +30,14 @@ void tfs_sv_mount(){
     int fcl = open(mbuffer, O_WRONLY);
     if (fcl != 1){
 
+        printf("Error opening");
         exit(2);
 
     }
     
     if((id = ses()) == -2){
 
+        printf("Session not found");
         write(fcl, id, sizeof(int));
         free(mbuffer);
 
@@ -85,9 +87,11 @@ int main(int argc, char **argv) {
     printf("Starting TecnicoFS server with pipe called %s\n", pipename);
     unlink(pipename);
     if(mkfifo(pipename, 0777) == -1){
+        printf("Error creating pipe");
         exit(-1);
     }
 
+    printf("Pipe open")
     svfileopen = open(pipename, O_RDONLY);
     char buffer[2] = "\0";
     tfs_init();

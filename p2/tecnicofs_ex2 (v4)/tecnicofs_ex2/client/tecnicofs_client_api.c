@@ -21,18 +21,21 @@ int tfs_mount(char const *client_pipe_path, char const *server_pipe_path) {
     unlink(client_pipe_path);
 
     if( mkfifo(client_pipe_path, 0777) == -1 ) {
+        printf("Error creating pipe");
         exit(-1);
     }
 
     client_fd = open(client_pipe_path, O_RDONLY);
 
     if(client_fd == -1){
+        printf("Error creating pipe");
         return -1;
     }
 
     server_fd = open(server_pipe_path, O_WRONLY);
 
     if( server_fd == -1){
+        printf("Error opening pipe");
         return -1;
     }
 
