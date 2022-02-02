@@ -56,9 +56,8 @@ void tfs_sv_mount(){
 }
 
 void tfs_sv_unmount(){
-    //ver este mbuffer que nao esta a fazer nada
+
     int id;
-    void* mbuffer = (void*) malloc(sizeof(char)*40);
     read(svfileopen, &id,sizeof(int));
     int fcl = open(mbuffer, O_WRONLY);
     if (fcl != 1){
@@ -67,7 +66,7 @@ void tfs_sv_unmount(){
         exit(2);
 
     }
-    // int fcl = ses_id[id];
+    int fcl = ses_id[id];
     close(fcl);
 }
 
@@ -88,7 +87,7 @@ void tfs_sv_open(){
         exit(2);
 
     }
-    // int fcl = ses_id[id];
+    int fcl = ses_id[id];
     
     tfs_open(&name , flags);
 
@@ -99,7 +98,6 @@ void tfs_sv_close(){
     int id;
     int fhandle;
 
-    void* mbuffer = (void*) malloc(sizeof(char)*40);
     read(svfileopen, &id, sizeof(int));
     read(svfileopen + sizeof(int), &fhandle, sizeof(int));
     int fcl = open(mbuffer, O_WRONLY);
@@ -109,7 +107,7 @@ void tfs_sv_close(){
         exit(2);
 
     }
-    // int fcl = ses_id[id];
+    int fcl = ses_id[id];
 
     tfs_close(fhandle);
 
@@ -121,12 +119,12 @@ void tfs_sv_write(){
     int id;
     int fhandle;
     size_t len;
-    // char[len] buff_cont;
+    char[len] buff_cont;
 
     read(svfileopen, &id, sizeof(int));
     read(svfileopen + sizeof(int), &fhandle, sizeof(int));
     read(svfileopen + (sizeof(int) * 2), &len, sizeof(int));
-    // read(svfileopen + (sizeof(int) * 3), &buff_cont, sizeof(int));
+    read(svfileopen + (sizeof(int) * 3), &buff_cont, sizeof(int));
 
 
 
@@ -148,15 +146,12 @@ int main(int argc, char **argv) {
     printf("Starting TecnicoFS server with pipe called %s\n", pipename);
     unlink(pipename);
     printf("Input received\n");
-    if(mkfifo(pipename,0777)<0)
-        return -1;
-    /*
-    if( create < 0 ) {
+    int create = mkfifo(pipename, 0777);
+    if( create == -1 ) {
         if (errno != EEXIST){                         //verifica que  o erro não é o named pipe já existir
             return -1;
         }
     }
-    */
     printf("Pipe created");
     svfileopen = open(pipename, O_RDONLY);
     char buffer[2] = "\0";
