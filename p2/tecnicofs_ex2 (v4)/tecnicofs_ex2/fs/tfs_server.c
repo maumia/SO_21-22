@@ -85,17 +85,14 @@ int main(int argc, char **argv) {
 
     char *pipename = argv[1];
     printf("Starting TecnicoFS server with pipe called %s\n", pipename);
-    printf("Pipe open1\n");
     unlink(pipename);
-    printf("Pipe open\n");
-    /*
-    if(mkfifo(pipename, 0777) == -1){
-        printf("Error creating pipe");
-        exit(-1);
+    printf("Input received\n");
+    if( mkfifo(pipename, 0777) == -1 ) {
+        if (errno != EEXIST){                         //verifica que  o erro não é o named pipe já existir
+            return -1;
+        }
     }
-    */
-    mkfifo(pipename, 0777);
-    printf("Pipe open");
+    printf("Pipe created");
     svfileopen = open(pipename, O_RDONLY);
     char buffer[2] = "\0";
     tfs_init();
