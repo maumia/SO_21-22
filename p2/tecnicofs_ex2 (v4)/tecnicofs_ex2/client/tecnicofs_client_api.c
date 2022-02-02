@@ -44,7 +44,8 @@ int tfs_mount(char const *client_pipe_path, char const *server_pipe_path) {
     memcpy(messg + 1, client_pipe_path, MAX_INPUT);
     write(server_fd, messg, 41);
     read(client_fd, &id , sizeof(int));
-    return id;
+    
+    return 0;
 }
 
 int tfs_unmount() {
