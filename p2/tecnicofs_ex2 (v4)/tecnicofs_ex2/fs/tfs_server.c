@@ -88,11 +88,13 @@ int main(int argc, char **argv) {
     printf("Pipe open1\n");
     unlink(pipename);
     printf("Pipe open\n");
+    /*
     if(mkfifo(pipename, 0777) == -1){
         printf("Error creating pipe");
         exit(-1);
     }
-
+    */
+    mkfifo(pipename, 0777);
     printf("Pipe open");
     svfileopen = open(pipename, O_RDONLY);
     char buffer[2] = "\0";
