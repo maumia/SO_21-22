@@ -1,6 +1,7 @@
 #include "operations.h"
 #include <fcntl.h>
 #include "common/common.h"
+#include <errno.h>’
 #define SES_ID 1
 #define S 1
 
@@ -87,7 +88,8 @@ int main(int argc, char **argv) {
     printf("Starting TecnicoFS server with pipe called %s\n", pipename);
     unlink(pipename);
     printf("Input received\n");
-    if( mkfifo(pipename, 0777) == -1 ) {
+    int create = mkfifo(pipename, 0777);
+    if( create == -1 ) {
         if (errno != EEXIST){                         //verifica que  o erro não é o named pipe já existir
             return -1;
         }
