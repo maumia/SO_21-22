@@ -29,12 +29,7 @@ int tfs_mount(char const *client_pipe_path, char const *server_pipe_path) {
     }
     memcpy(cl_path, client_pipe_path, 40);
     printf("Client created\n");
-    server_pipe = open(server_pipe_path, O_WRONLY);
-    printf("Server opened\n");
-    if(server_pipe == -1){
-        printf("Error opening server pipe");
-        return -1;
-    }
+    
 
     
 
@@ -42,16 +37,23 @@ int tfs_mount(char const *client_pipe_path, char const *server_pipe_path) {
     char* messg = (char*) malloc(41);
     sprintf(messg, "%c", TFS_OP_CODE_MOUNT + 48);
     memcpy(messg + 1, client_pipe_path, MAX_INPUT);
-    
+    server_pipe = open(server_pipe_path, O_WRONLY);
+    printf("Server opened\n");
+    if(server_pipe == -1){
+        printf("Error opening server pipe");
+        return -1;
+    }
     write(server_pipe, messg, 41);
     printf("Wrote to sv pipe");
+    fflush(stdout);
     client_pipe = open(client_pipe_path, O_RDONLY);
-    if(client_pipe == -1){
+    printf("Client opened\n");
+    fflush(stdout);
+    if(client_pipe <= 0){
         printf("Error opening client pipe");
         return -1;
     }
-    printf("Client opened\n");
-    fflush(stdout);
+   
     if(client_pipe == -1){
         printf("Error creating pipe");
         return -1;

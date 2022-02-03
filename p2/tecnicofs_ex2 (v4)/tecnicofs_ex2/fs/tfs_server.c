@@ -1,7 +1,17 @@
 #include "operations.h"
-#include <fcntl.h>
 #include "common/common.h"
-#include <errno.h>’
+
+#include <fcntl.h>
+#include <errno.h>
+#include <unistd.h>
+#include <string.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <stdio.h>
+#include <errno.h>
+
 #define SES_ID 1
 #define S 1
 
@@ -34,16 +44,15 @@ void tfs_sv_mount(){
     char* mbuffer = (char*) malloc(sizeof(char)*40);
     read(svfileopen, mbuffer, sizeof(char) * 40);
     int fcl = open(mbuffer, O_WRONLY);
-    if (fcl < 0){
-
+    
+    if (fcl < 0)
         printf("Error opening\n");
-
-    }
     
     if((id = ses()) == -2){
 
         printf("User found, changing\n");
-        write(fcl, id, sizeof(int));
+        if(write(fcl, &id, sizeof(int) < 0))
+            printf("Erro write client\n");
         free(mbuffer);
 
     }
@@ -52,7 +61,8 @@ void tfs_sv_mount(){
         
         printf("User not found, adding\n");
         ses_id[id] = fcl;
-        write(fcl, id, sizeof(int));
+        if(write(fcl, &id, sizeof(int)) < 0)
+            printf("Erro write client\n");
         free(mbuffer);
         printf("Mounted\n");
             
@@ -134,7 +144,7 @@ void tfs_sv_write(){
 
 
     size_t res = tfs_write(fhandle, buff_cont, len);
-    write(ses_id[id], res, sizeof(int));
+    write(ses_id[id], &res, sizeof(int));
     printf("tfs_write done\n");
     
 
