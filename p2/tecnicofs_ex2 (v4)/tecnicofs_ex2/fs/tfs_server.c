@@ -13,14 +13,15 @@ typedef struct{
 
 int svfileopen;
 int svopen;
-int ses_id[SES_ID]; 
+int ses_id[SES_ID];
+ses_id[0] = -1; 
 
 
 int ses(){
     for(int i= 0; i < SES_ID; i++){
         if (ses_id[i] == -1){ return i;};
     }
-        printf("Session not found");
+    printf("Session not found");
     return -2;
 
 }
@@ -34,13 +35,13 @@ void tfs_sv_mount(){
     int fcl = open(mbuffer, O_WRONLY);
     if (fcl < 0){
 
-        printf("Error opening");
+        printf("Error opening\n");
 
     }
     
     if((id = ses()) == -2){
 
-        printf("Session not found");
+        printf("User found, changing\n");
         write(fcl, id, sizeof(int));
         free(mbuffer);
 
@@ -48,7 +49,7 @@ void tfs_sv_mount(){
 
     else{
         
-        printf("Session found, mounting\n");
+        printf("User not found, adding\n");
         ses_id[id] = fcl;
         write(fcl, id, sizeof(int));
         free(mbuffer);
