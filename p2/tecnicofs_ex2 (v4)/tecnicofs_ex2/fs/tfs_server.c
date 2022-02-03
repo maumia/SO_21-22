@@ -60,7 +60,8 @@ void tfs_sv_mount(){
         free(mbuffer);
         printf("Mounted\n");
             
-    }
+    }printf("Client opened\n");
+    fflush(stdout);
 
 }
 /*

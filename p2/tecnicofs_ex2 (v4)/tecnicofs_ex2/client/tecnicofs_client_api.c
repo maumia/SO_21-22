@@ -15,7 +15,7 @@ static char bufferPipe[MAX_INPUT];
 int id;             //client id
 int client_pipe;    //client pipe
 int server_pipe;    //server pipe
-char cl_path[40];
+char cl_path[40];   //client path
 
 
 
@@ -138,7 +138,7 @@ int tfs_shutdown_after_all_closed() {
     char* messg = (char*) malloc(1 + 1); //40 DO CHAR + 1 DO OP_CODE + 1 DO ID + 1 DA FLAG
     sprintf(messg, "%c", TFS_OP_CODE_READ);
     memcpy(messg + 1, &id, sizeof(int));
-    
+
 
 
 
