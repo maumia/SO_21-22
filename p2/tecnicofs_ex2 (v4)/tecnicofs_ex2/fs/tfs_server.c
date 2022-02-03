@@ -30,9 +30,9 @@ void tfs_sv_mount(){
     int id;
     read(svfileopen, &id,sizeof(int));
     void* mbuffer = (void*) malloc(sizeof(char)*40);
-    read(svfileopen, mbuffer, 40);
+    read(svfileopen, mbuffer, sizeof(char) * 40);
     int fcl = open(mbuffer, O_WRONLY);
-    if (fcl != 1){
+    if (fcl < 0){
 
         printf("Error opening");
 
