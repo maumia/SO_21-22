@@ -15,6 +15,8 @@
 #define SES_ID 1
 
 
+
+
 int svfileopen;
 int svopen;
 int ses_id[SES_ID];
@@ -60,8 +62,7 @@ void tfs_sv_mount(){
         free(mbuffer);
         printf("Mounted\n");
             
-    }printf("Client opened\n");
-    fflush(stdout);
+    }
 
 }
 /*
@@ -148,7 +149,7 @@ void tfs_sv_write(){
 
 int main(int argc, char **argv) {
 
-   
+    client_t client[S];
     int actual_session;
 
     ses_id[0] = -1; 
