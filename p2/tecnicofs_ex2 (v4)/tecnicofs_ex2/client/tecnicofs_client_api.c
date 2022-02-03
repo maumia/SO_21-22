@@ -58,7 +58,9 @@ int tfs_mount(char const *client_pipe_path, char const *server_pipe_path) {
     }
     read(client_pipe, &id , sizeof(int));
     
+
     return 0;
+    printf("Retornou\n");
 }
 
 int tfs_unmount() {
