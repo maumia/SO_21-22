@@ -190,6 +190,7 @@ int main(int argc, char **argv) {
 
         case TFS_OP_CODE_OPEN : 
             tfs_sv_open();
+            printf("tfs_open done\n");
             break;
         
         case TFS_OP_CODE_CLOSE :
@@ -198,6 +199,7 @@ int main(int argc, char **argv) {
 
         case TFS_OP_CODE_WRITE : 
             tfs_sv_write();
+            printf("tfs_write done\n");
             break;
         
         case TFS_OP_CODE_READ :
