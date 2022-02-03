@@ -14,6 +14,7 @@ typedef struct{
 int svfileopen;
 int ses_id[SES_ID]; 
 
+
 int ses(){
     for(int i= 0; i < SES_ID; i++){
         if (ses_id[i] == -1){ return i;};
@@ -68,6 +69,7 @@ void tfs_sv_unmount(){
     }
     int fcl = ses_id[id];
     close(fcl);
+    ses_id[id] = -2;
 }
 
 void tfs_sv_open(){
@@ -119,14 +121,16 @@ void tfs_sv_write(){
     int id;
     int fhandle;
     size_t len;
-    char[len] buff_cont;
+    char buff_cont[len];
 
-    read(svfileopen, &id, sizeof(int));
-    read(svfileopen + sizeof(int), &fhandle, sizeof(int));
-    read(svfileopen + (sizeof(int) * 2), &len, sizeof(int));
-    read(svfileopen + (sizeof(int) * 3), &buff_cont, sizeof(int));
+    read(svfileopen , &id, sizeof(int));
+    read(svfileopen , &fhandle, sizeof(int));
+    read(svfileopen , &len, sizeof(size_t));
+    read(svfileopen , buff_cont, len);
 
 
+    size_t res = tfs_write(fhandle, buff_cont, len);
+    write
 
 
 
