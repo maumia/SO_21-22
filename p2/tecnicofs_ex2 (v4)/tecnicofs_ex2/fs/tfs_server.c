@@ -12,6 +12,7 @@ typedef struct{
 
 
 int svfileopen;
+int svopen;
 int ses_id[SES_ID]; 
 
 
@@ -34,7 +35,6 @@ void tfs_sv_mount(){
     if (fcl != 1){
 
         printf("Error opening");
-        exit(2);
 
     }
     
@@ -55,7 +55,7 @@ void tfs_sv_mount(){
     }
 
 }
-
+/*
 void tfs_sv_unmount(){
 
     int id;
@@ -67,11 +67,11 @@ void tfs_sv_unmount(){
         exit(2);
 
     }
-    int fcl = ses_id[id];
+    fcl = ses_id[id];
     close(fcl);
     ses_id[id] = -2;
 }
-
+*/
 void tfs_sv_open(){
 
     int id;
@@ -80,8 +80,8 @@ void tfs_sv_open(){
     
     void* mbuffer = (void*) malloc(sizeof(char)*40);
     read(svfileopen, &id, sizeof(int));
-    read(svfileopen + sizeof(int), &name, sizeof(char)*40);
-    read(svfileopen + sizeof(char) * 40 + sizeof(int), &flags, sizeof(int));
+    read(svfileopen, &name, sizeof(char)*40);
+    read(svfileopen, &flags, sizeof(int));
     int fcl = open(mbuffer, O_WRONLY);
     if (fcl != 1){
 
@@ -89,12 +89,11 @@ void tfs_sv_open(){
         exit(2);
 
     }
-    int fcl = ses_id[id];
-    
+  
     tfs_open(&name , flags);
 
 }
-
+/*
 void tfs_sv_close(){
 
     int id;
@@ -115,7 +114,7 @@ void tfs_sv_close(){
 
 
 }
-
+*/
 void tfs_sv_write(){
 
     int id;
@@ -156,8 +155,11 @@ int main(int argc, char **argv) {
             return -1;
         }
     }
-    printf("Pipe created");
+    printf("Pipe created\n");
+    fflush(stdout);
     svfileopen = open(pipename, O_RDONLY);
+    printf("Pipe opened\n");
+    fflush(stdout);
     char buffer[2] = "\0";
     tfs_init();
     int bufread; 
@@ -175,7 +177,7 @@ int main(int argc, char **argv) {
             break;
         
         case TFS_OP_CODE_UNMOUNT :
-            tfs_sv_unmount();
+            // tfs_sv_unmount();
             break;
 
         case TFS_OP_CODE_OPEN : 
@@ -183,7 +185,7 @@ int main(int argc, char **argv) {
             break;
         
         case TFS_OP_CODE_CLOSE :
-            tfs_sv_close();
+            // tfs_sv_close();
             break;
 
         case TFS_OP_CODE_WRITE : 
