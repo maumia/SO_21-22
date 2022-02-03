@@ -130,7 +130,7 @@ void tfs_sv_write(){
 
 
     size_t res = tfs_write(fhandle, buff_cont, len);
-    write
+    write(ses_id[id], res, sizeof(int));
 
 
 
