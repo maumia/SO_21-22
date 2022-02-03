@@ -48,10 +48,12 @@ void tfs_sv_mount(){
 
     else{
         
+        printf("Session found, mounting\n");
         ses_id[id] = fcl;
         write(fcl, id, sizeof(int));
         free(mbuffer);
-        
+        printf("Mounted\n");
+            
     }
 
 }
@@ -122,6 +124,7 @@ void tfs_sv_write(){
     size_t len;
     char buff_cont[len];
 
+    printf("Starting tfs_write\n");
     read(svfileopen , &id, sizeof(int));
     read(svfileopen , &fhandle, sizeof(int));
     read(svfileopen , &len, sizeof(size_t));
@@ -130,7 +133,8 @@ void tfs_sv_write(){
 
     size_t res = tfs_write(fhandle, buff_cont, len);
     write(ses_id[id], res, sizeof(int));
-
+    printf("tfs_write done\n");
+    
 
 
 }
