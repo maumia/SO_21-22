@@ -189,6 +189,7 @@ int main(int argc, char **argv) {
             break;
 
         case TFS_OP_CODE_OPEN : 
+            printf("tfs_open starting\n");
             tfs_sv_open();
             printf("tfs_open done\n");
             break;

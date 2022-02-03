@@ -12,9 +12,12 @@
 #define MAX_INPUT 40
 
 static char bufferPipe[MAX_INPUT];
-int id; //client id
-int client_pipe;  //client pipe
-int server_pipe;  //server pipe
+int id;             //client id
+int client_pipe;    //client pipe
+int server_pipe;    //server pipe
+char cl_path[40];
+
+
 
 int tfs_mount(char const *client_pipe_path, char const *server_pipe_path) {
     
@@ -24,7 +27,7 @@ int tfs_mount(char const *client_pipe_path, char const *server_pipe_path) {
         printf("Error creating pipe");
         exit(-1);
     }
-
+    memcpy(cl_path, client_pipe_path, 40);
     printf("Client created\n");
     server_pipe = open(server_pipe_path, O_WRONLY);
     printf("Server opened\n");
@@ -60,14 +63,15 @@ int tfs_mount(char const *client_pipe_path, char const *server_pipe_path) {
 
 int tfs_unmount() {
     
-    int err;
+    int res;
     char* messg = (char*) malloc(1 + sizeof(int));
     sprintf(messg, "%d", TFS_OP_CODE_UNMOUNT);
     memcpy(messg + 1, &id, sizeof(int));
     write(server_pipe, messg, 1 + sizeof(int));
-    read(client_pipe, &err , sizeof(int));
+    read(client_pipe, &res , sizeof(int));
+    unlink(cl_path);
 
-    return err;
+    return res;
 }
 
 int tfs_open(char const *name, int flags) {
