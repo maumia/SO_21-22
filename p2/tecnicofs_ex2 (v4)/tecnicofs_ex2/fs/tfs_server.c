@@ -58,7 +58,7 @@ void tfs_sv_mount(){
     }
 
 }
-/*
+
 void tfs_sv_unmount(){
 
     int id;
@@ -74,7 +74,7 @@ void tfs_sv_unmount(){
     close(fcl);
     ses_id[id] = -2;
 }
-*/
+
 void tfs_sv_open(){
 
     int id;
