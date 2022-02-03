@@ -14,7 +14,7 @@ typedef struct{
 int svfileopen;
 int svopen;
 int ses_id[SES_ID];
-ses_id[0] = -1; 
+
 
 
 int ses(){
@@ -145,6 +145,7 @@ int main(int argc, char **argv) {
     client_t client[S];
     int actual_session;
 
+    ses_id[0] = -1; 
     if (argc < 2) {
         printf("Please specify the pathname of the server's pipe.\n");
         return 1;
