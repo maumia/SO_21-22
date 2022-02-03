@@ -13,12 +13,6 @@
 #include <errno.h>
 
 #define SES_ID 1
-#define S 1
-
-typedef struct{
-    int session_id;
-    char client_pipe[40];
-}client_t;
 
 
 int svfileopen;
@@ -153,7 +147,7 @@ void tfs_sv_write(){
 
 int main(int argc, char **argv) {
 
-    client_t client[S];
+   
     int actual_session;
 
     ses_id[0] = -1; 
