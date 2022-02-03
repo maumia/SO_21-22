@@ -57,6 +57,7 @@ int tfs_mount(char const *client_pipe_path, char const *server_pipe_path) {
         return -1;
     }
     read(client_pipe, &id , sizeof(int));
+    printf("Terminnou read\n");
     
 
     return 0;
