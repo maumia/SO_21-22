@@ -65,7 +65,7 @@ int tfs_unmount() {
     
     int res;
     char* messg = (char*) malloc(1 + sizeof(int));
-    sprintf(messg, "%d", TFS_OP_CODE_UNMOUNT);
+    sprintf(messg, "%c", TFS_OP_CODE_UNMOUNT);
     memcpy(messg + 1, &id, sizeof(int));
     write(server_pipe, messg, 1 + sizeof(int));
     read(client_pipe, &res , sizeof(int));
@@ -77,7 +77,7 @@ int tfs_unmount() {
 int tfs_open(char const *name, int flags) {
 
     char* messg = (char*) malloc(MAX_INPUT + 1 + 1 + 1); //40 DO CHAR + 1 DO OP_CODE + 1 DO ID + 1 DA FLAG
-    sprintf(messg, "%d", TFS_OP_CODE_OPEN);
+    sprintf(messg, "%c", TFS_OP_CODE_OPEN);
     memcpy(messg + 1, &id, sizeof(int));
     memcpy(messg + 2, &name, MAX_INPUT);
     memcpy(messg + 2 + MAX_INPUT, &flags, sizeof(int));
@@ -91,7 +91,7 @@ int tfs_open(char const *name, int flags) {
 int tfs_close(int fhandle) {
     
     char* messg = (char*) malloc(MAX_INPUT + 1 + 1); //40 DO CHAR + 1 DO OP_CODE + 1 DO ID + 1 DA FLAG
-    sprintf(messg, "%d", TFS_OP_CODE_CLOSE);
+    sprintf(messg, "%c", TFS_OP_CODE_CLOSE);
     memcpy(messg + 1, &id, sizeof(int));
     memcpy(messg + 2, &fhandle, MAX_INPUT);
     
@@ -104,7 +104,7 @@ int tfs_close(int fhandle) {
 ssize_t tfs_write(int fhandle, void const *buffer, size_t len) {
     
     char* messg = (char*) malloc(1 + 1 + 1 + 1 + len); //40 DO CHAR + 1 DO OP_CODE + 1 DO ID + 1 DA FLAG
-    sprintf(messg, "%d", TFS_OP_CODE_WRITE);
+    sprintf(messg, "%c", TFS_OP_CODE_WRITE);
     memcpy(messg + 1, &id, sizeof(int));
     memcpy(messg + 2, &fhandle, MAX_INPUT);
     memcpy(messg + 3, len, sizeof(int));
@@ -118,7 +118,7 @@ ssize_t tfs_write(int fhandle, void const *buffer, size_t len) {
 ssize_t tfs_read(int fhandle, void *buffer, size_t len) {
     
     char* messg = (char*) malloc(1 + 1 + 1 + 1); //40 DO CHAR + 1 DO OP_CODE + 1 DO ID + 1 DA FLAG
-    sprintf(messg, "%d", TFS_OP_CODE_READ);
+    sprintf(messg, "%c", TFS_OP_CODE_READ);
     memcpy(messg + 1, &id, sizeof(int));
     memcpy(messg + 2, &fhandle, MAX_INPUT);
     memcpy(messg + 3, len, sizeof(int));
@@ -131,7 +131,7 @@ ssize_t tfs_read(int fhandle, void *buffer, size_t len) {
 
 int tfs_shutdown_after_all_closed() {
     char* messg = (char*) malloc(1 + 1); //40 DO CHAR + 1 DO OP_CODE + 1 DO ID + 1 DA FLAG
-    sprintf(messg, "%d", TFS_OP_CODE_READ);
+    sprintf(messg, "%c", TFS_OP_CODE_READ);
     memcpy(messg + 1, &id, sizeof(int));
 
 
