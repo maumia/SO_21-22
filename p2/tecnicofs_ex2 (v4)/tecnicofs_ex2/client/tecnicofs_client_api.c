@@ -37,7 +37,7 @@ int tfs_mount(char const *client_pipe_path, char const *server_pipe_path) {
 
     
     char* messg = (char*) malloc(41);
-    sprintf(messg, "%c", TFS_OP_CODE_MOUNT);
+    sprintf(messg, "%c", TFS_OP_CODE_MOUNT + 48);
     memcpy(messg + 1, client_pipe_path, MAX_INPUT);
     
     write(server_pipe, messg, 41);

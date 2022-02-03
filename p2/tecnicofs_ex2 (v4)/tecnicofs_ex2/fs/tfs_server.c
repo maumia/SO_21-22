@@ -30,7 +30,8 @@ int ses(){
 void tfs_sv_mount(){
     int id;
     read(svfileopen, &id,sizeof(int));
-    void* mbuffer = (void*) malloc(sizeof(char)*40);
+    printf("%d\n", id);
+    char* mbuffer = (char*) malloc(sizeof(char)*40);
     read(svfileopen, mbuffer, sizeof(char) * 40);
     int fcl = open(mbuffer, O_WRONLY);
     if (fcl < 0){
@@ -58,7 +59,7 @@ void tfs_sv_mount(){
     }
 
 }
-
+/*
 void tfs_sv_unmount(){
 
     int id;
@@ -74,7 +75,7 @@ void tfs_sv_unmount(){
     close(fcl);
     ses_id[id] = -2;
 }
-
+*/
 void tfs_sv_open(){
 
     int id;
@@ -180,6 +181,7 @@ int main(int argc, char **argv) {
         {
         case TFS_OP_CODE_MOUNT :
             tfs_sv_mount();
+            printf("tfs_sv_mount done\n");
             break;
         
         case TFS_OP_CODE_UNMOUNT :
