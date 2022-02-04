@@ -52,6 +52,7 @@ int tfs_mount(char const *client_pipe_path, char const *server_pipe_path) {
     
     if(read(client_pipe, &id , sizeof(int)) < 0){
         printf("Error reading pipe%s\n", strerror(errno));
+        return -1;
     };
 
     printf("Mounted\n");
@@ -66,7 +67,10 @@ int tfs_unmount() {
     messg[0] = TFS_OP_CODE_UNMOUNT;
     memcpy(messg + 1, &id, sizeof(char));
     write(server_pipe, messg, 1 + sizeof(int));
-    read(client_pipe, &res , sizeof(int));
+    if(read(client_pipe, &res , sizeof(int))< 0){
+        printf("Error reading %s\n", strerror(errno));
+        return -1;
+    };
     unlink(client_pipe);
 
     printf("Unmounted\n");
@@ -85,7 +89,10 @@ int tfs_open(char const *name, int flags) {
     
 
     int ret = 0;
-    read(client_pipe, &ret, sizeof(int));
+    if(read(client_pipe, &ret, sizeof(int)) < 0){
+        printf("Error reading %s\n", strerror(errno));
+        return -1;
+    };
     printf("Opened\n");
     return ret;
 }
@@ -98,7 +105,10 @@ int tfs_close(int fhandle) {
     memcpy(messg + sizeof(int) * 2, &fhandle, sizeof(int));
     
     write(server_pipe, messg, sizeof(int) * 3);
-    read(client_pipe, &id , sizeof(int));
+    if(read(client_pipe, &id , sizeof(int)) < 0){
+        printf("Error reading %s\n", strerror(errno));
+        return -1;
+    };
     printf("Closed\n");
     return 0;
 }
@@ -114,7 +124,10 @@ ssize_t tfs_write(int fhandle, void const *buffer, size_t len) {
 
     ssize_t ret = 0;
     write(server_pipe, messg, 9 + sizeof(size_t) + len);
-    read(client_pipe, &ret , sizeof(ssize_t));
+    if(read(client_pipe, &ret , sizeof(ssize_t)) < 0){
+        printf("Error reading %s\n", strerror(errno));
+        return -1;
+    };
     printf("Wrote\n");
     return ret; 
 }
@@ -129,22 +142,31 @@ ssize_t tfs_read(int fhandle, void *buffer, size_t len) {
     
     write(server_pipe,messg,sizeof(char) + sizeof(int) * 2 + sizeof(size_t) );
     ssize_t ret = 0;   
-    if(read(client_pipe, &ret , sizeof(ssize_t)) < 0)
-        printf("Erro no read: %s", strerror(errno)); //Está a funcionar
+    if(read(client_pipe, &ret , sizeof(ssize_t)) < 0){
+        printf("Error reading %s\n", strerror(errno));
+        return -1;
+    };
     printf("Read1\n");
-    // read(client_pipe, buffer , len);
+    /*
+    if(read(client_pipe, buffer , len) < 0){
+        printf("Error reading %s\n", strerror(errno));
+        return -1;
+    };
+    */
     printf("Read\n");
     return ret;
 }
 
 int tfs_shutdown_after_all_closed() {
+    char client_buf[sizeof(int) + 1];
+    int ret;
+
+
     char messg[sizeof(char) + sizeof(int)];
-    messg[0] = TFS_OP_CODE_READ;
+    messg[0] = TFS_OP_CODE_SHUTDOWN_AFTER_ALL_CLOSED;
     memcpy(messg + 1, &id, sizeof(int));
+    write(server_pipe, client_buf, sizeof(char) + sizeof(int));
+    read(client_pipe, &ret, sizeof(int));
 
-
-
-
-
-    return -1;
+    return 0;
 }

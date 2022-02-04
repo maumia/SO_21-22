@@ -152,7 +152,14 @@ void tfs_sv_read(){
     // write(fcl, buff_cont, len);  
 }
 
+void tfs_sv_shutdownafterclose(){
+    int id;
+    int ret;
 
+    read(svfileopen, &id, sizeof(int));
+    ret = tfs_destroy_after_all_closed();
+    write(id, &ret , sizeof(int));
+}
 
 
 int main(int argc, char **argv) {
@@ -211,6 +218,7 @@ int main(int argc, char **argv) {
             break;
 
         case TFS_OP_CODE_SHUTDOWN_AFTER_ALL_CLOSED :
+        tfs_sv_shutdownafterclose();
             break;
 
         default:
