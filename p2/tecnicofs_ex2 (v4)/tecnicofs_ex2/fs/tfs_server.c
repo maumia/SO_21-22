@@ -20,7 +20,7 @@
 int svfileopen;
 int svopen;
 int ses_id[SES_ID];
-
+int fcl;
 
 
 int ses(){
@@ -37,8 +37,8 @@ void tfs_sv_mount(){
 
     char mbuffer[41];
     read(svfileopen, mbuffer, sizeof(char) * 40);
-    mbuffer[40] =0;
-    int fcl = open(mbuffer, O_WRONLY);
+    mbuffer[40] = 0;
+    fcl = open(mbuffer, O_WRONLY);
     
     if (fcl < 0){
          printf("Error opening %s : %s\n", mbuffer, strerror(errno));
@@ -94,16 +94,16 @@ void tfs_sv_open(){
     char const* name;
     int flags;
     
-    void* mbuffer = (void*) malloc(sizeof(char)*40);
+    char mbuffer[sizeof(int) * 2 + sizeof(char) * 40];
     read(svfileopen, &id, sizeof(int));
     read(svfileopen, &name, sizeof(char)*40);
     read(svfileopen, &flags, sizeof(int));
-    int fcl = open(mbuffer, O_WRONLY);
-    if (fcl != 1){
+    mbuffer[sizeof(int) * 2 + sizeof(char) * 40 - 1] = 0;
+    int fcl = open(svfileopen, O_WRONLY);
+    if (fcl < 0){
 
-        printf("Error opening");
-        exit(2);
-
+        printf("Error opening : %s\n", strerror(errno));
+        return;
     }
   
     tfs_open(&name , flags);

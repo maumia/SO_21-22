@@ -75,7 +75,7 @@ int tfs_unmount() {
 
 int tfs_open(char const *name, int flags) {
     printf("opening %s\n", name);
-    char messg[sizeof(char) * MAX_INPUT + sizeof(int) * 3]; //40 DO CHAR + 1 DO OP_CODE + 1 DO ID + 1 DA FLAG
+    char messg[sizeof(char) * MAX_INPUT + sizeof(int) * 3]; 
     messg[0] = TFS_OP_CODE_OPEN;
     strncpy(messg + sizeof(int), &id, sizeof(int));
     strncpy(messg + sizeof(int) * 2, &name, MAX_INPUT);
@@ -92,7 +92,7 @@ int tfs_open(char const *name, int flags) {
 
 int tfs_close(int fhandle) {
 
-    char messg[sizeof(int) * 3]; //40 DO CHAR + 1 DO OP_CODE + 1 DO ID + 1 DA FLAG
+    char messg[sizeof(int) * 3]; 
     messg[0] = TFS_OP_CODE_CLOSE;
     strncpy(messg + sizeof(int), &id, sizeof(int));
     strncpy(messg + sizeof(int) * 2, &fhandle, sizeof(int));
@@ -119,21 +119,21 @@ ssize_t tfs_write(int fhandle, void const *buffer, size_t len) {
 
 ssize_t tfs_read(int fhandle, void *buffer, size_t len) {
     
-    char messg[sizeof(int) * 2 + sizeof(size_t) ] //40 DO CHAR + 1 DO OP_CODE + 1 DO ID + 1 DA FLAG
-    sprintf(messg, "%c", TFS_OP_CODE_READ);
+    char messg[sizeof(int) * 2 + sizeof(size_t)];
+    messg[0] = TFS_OP_CODE_READ;
     strncpy(messg + 1, &id, sizeof(int));
     strncpy(messg + 2, &fhandle, MAX_INPUT);
     strncpy(messg + 3, len, sizeof(int));
     
-    write(server_pipe, messg, MAX_INPUT + 1 + 1 + 1);
+    write(server_pipe, messg, sizeof(int) * 2 + sizeof(size_t));
     read(client_pipe, &id , sizeof(int));
 
     return -1;
 }
 
 int tfs_shutdown_after_all_closed() {
-    char* messg = (char*) malloc(1 + 1); //40 DO CHAR + 1 DO OP_CODE + 1 DO ID + 1 DA FLAG
-    sprintf(messg, "%c", TFS_OP_CODE_READ);
+    char messg[sizeof(int) * 2];
+    messg[0] = TFS_OP_CODE_READ;
     strncpy(messg + 1, &id, sizeof(int));
 
 
