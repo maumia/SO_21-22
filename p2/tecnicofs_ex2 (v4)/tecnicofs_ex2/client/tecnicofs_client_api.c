@@ -108,8 +108,8 @@ ssize_t tfs_write(int fhandle, void const *buffer, size_t len) {
     messg[0] = TFS_OP_CODE_WRITE;
     memcpy(messg + sizeof(char), &id, sizeof(int));
     memcpy(messg + sizeof(int) + sizeof(char), &fhandle, sizeof(int));
-    memcpy(messg + 9, &len, sizeof(sizeof(size_t)));
-    memcpy(messg + 9 + sizeof(size_t), buffer, len);
+    memcpy(messg + sizeof(int) * 2 + sizeof(char), &len, sizeof(sizeof(size_t)));
+    memcpy(messg + sizeof(int) * 2 + sizeof(char) + sizeof(size_t), buffer, len);
 
     ssize_t ret;
     write(server_pipe, messg, 9 + sizeof(size_t) + len);
@@ -126,7 +126,7 @@ ssize_t tfs_read(int fhandle, void *buffer, size_t len) {
     messg[0] = TFS_OP_CODE_READ;
     memcpy(messg + sizeof(char), &id, sizeof(int));
     memcpy(messg + sizeof(int) + sizeof(char), &fhandle, sizeof(int));
-    memcpy(messg + 9, &len, sizeof(sizeof(size_t)));
+    memcpy(messg + sizeof(int) * 2 + sizeof(char), &len, sizeof(sizeof(size_t)));
     
     write(server_pipe,messg,sizeof(char) + sizeof(int) * 2 + sizeof(size_t) );
     ssize_t ret;   
