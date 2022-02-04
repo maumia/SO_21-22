@@ -11,25 +11,24 @@
 #include <sys/types.h>
 #include <stdio.h>
 #include <errno.h>
+#include <pthread.h>
 
 #define SES_ID 1
 
 
-
-
-int svfileopen;
-int svopen;
-int ses_id[SES_ID];
-int fcl;
-
+int svfileopen;                 //servidor
+int ses_id[SES_ID];             //array clientes
+int fcl;                        //cliente
+pthread_mutex_t mtx[SES_ID];
 
 int ses(){
     for(int i= 0; i < SES_ID; i++){
-        if (ses_id[i] == -1){ return i;};
+        if (ses_id[i] == -1){ 
+        return i;
+        }
     }
     printf("Session not found");
     return -2;
-
 }
 
 
@@ -47,10 +46,12 @@ void tfs_sv_mount(){
     }
 
     int id = ses();
+    pthread_mutex_init(&(mtx[id]), NULL);
+    pthread_mutex_lock(&(mtx[id]));
     if(id == -2){
-
         if(write(fcl, &id, sizeof(int) < 0)){
             printf("Error write client : %s\n", strerror(errno));
+            pthread_mutex_unlock(&(mtx[id]));
             return;
         }
 
@@ -61,21 +62,22 @@ void tfs_sv_mount(){
         ses_id[id] = fcl;
         if(write(fcl, &id, sizeof(int)) < 0){
             printf("Error write client : %s\n", strerror(errno));
+            pthread_mutex_unlock(&(mtx[id]));
             return;
         }
-
-        
-            
+        pthread_mutex_unlock(&(mtx[id]));        
     }
-
 }
 
 void tfs_sv_unmount(){
-
+    
     int id;
     read(svfileopen, &id,sizeof(int));
+    pthread_mutex_lock(&(mtx[id]));
     ses_id[id] = -2;
     close(fcl);
+    pthread_mutex_unlock(&(mtx[id]));
+    pthread_mutex_destroy(&(mtx[id]));
     
 }
 
@@ -86,14 +88,17 @@ void tfs_sv_open(){
     int flags;
 
     read(svfileopen, &id, sizeof(int));
+    pthread_mutex_lock(&(mtx[id]));
     read(svfileopen, &name, sizeof(char)*40);
     read(svfileopen, &flags, sizeof(int));
     int ret;
     ret = tfs_open(name , flags);
     if(write(fcl, &ret, sizeof(int)) < 0){
         printf("Error write client : %s\n", strerror(errno));
+        pthread_mutex_unlock(&(mtx[id]));
         return;
     }
+    pthread_mutex_unlock(&(mtx[id]));
 }
 
 void tfs_sv_close(){
@@ -101,13 +106,16 @@ void tfs_sv_close(){
     int id;
     int fhandle;
     read(svfileopen, &id, sizeof(int));
+    pthread_mutex_lock(&(mtx[id]));
     read(svfileopen, &fhandle, sizeof(int));
     int ret ;
     ret = tfs_close(fhandle);
     if(write(fcl, &ret, sizeof(int)) < 0){
         printf("Error write client : %s\n", strerror(errno));
+        pthread_mutex_unlock(&(mtx[id]));
         return;
     }
+    pthread_mutex_unlock(&(mtx[id]));
 }
 
 void tfs_sv_write(){
@@ -117,6 +125,7 @@ void tfs_sv_write(){
     size_t len;
     
     read(svfileopen , &id, sizeof(int));
+    pthread_mutex_lock(&(mtx[id]));
     read(svfileopen , &fhandle, sizeof(int));
     read(svfileopen , &len, sizeof(size_t));
     char buff_cont[len];
@@ -126,8 +135,10 @@ void tfs_sv_write(){
     ssize_t ret = tfs_write(fhandle, buff_cont, len);
     if(write(fcl, &ret, sizeof(ssize_t)) < 0){
         printf("Error write client : %s\n", strerror(errno));
+        pthread_mutex_unlock(&(mtx[id]));
         return;
-    }    
+    }
+    pthread_mutex_unlock(&(mtx[id]));   
 }
 
 void tfs_sv_read(){
@@ -135,19 +146,20 @@ void tfs_sv_read(){
     int fhandle;
     size_t len;
     ssize_t ret = 0;
-    
-
-    
+        
     read(svfileopen , &id, sizeof(int));
+    pthread_mutex_lock(&(mtx[id]));
     read(svfileopen , &fhandle, sizeof(int));
     read(svfileopen , &len, sizeof(size_t));
     char buff_cont[len];
     ret = tfs_read(fhandle, buff_cont, len);
     if(write(fcl, &ret, sizeof(ssize_t)) < 0){
         printf("Error write client : %s\n", strerror(errno));
+        pthread_mutex_unlock(&(mtx[id]));
         return;
     }
-    write(fcl, buff_cont, len);  
+    write(fcl, buff_cont, len);
+    pthread_mutex_unlock(&(mtx[id]));
 }
 
 void tfs_sv_shutdownafterclose(){
@@ -155,8 +167,10 @@ void tfs_sv_shutdownafterclose(){
     int ret;
 
     read(svfileopen, &id, sizeof(int));
+    pthread_mutex_lock(&(mtx[id]));
     ret = tfs_destroy_after_all_closed();
     write(id, &ret , sizeof(int));
+    pthread_mutex_unlock(&(mtx[id]));
 }
 
 
@@ -216,28 +230,11 @@ int main(int argc, char **argv) {
             break;
 
         case TFS_OP_CODE_SHUTDOWN_AFTER_ALL_CLOSED :
-        tfs_sv_shutdownafterclose();
+            tfs_sv_shutdownafterclose();
             break;
 
         default:
             break;
-        
-        
-        
-        
-        
-        
-        
         }
-        
-
-
-        
-        
-
-
-
-    }
-
-    
+    } 
 }
