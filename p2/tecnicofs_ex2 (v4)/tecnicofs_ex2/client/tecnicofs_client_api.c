@@ -11,7 +11,7 @@
 
 #define MAX_INPUT 40
 
-static char bufferPipe[MAX_INPUT];
+
 int id;             //client id
 int client_pipe;    //client pipe
 int server_pipe;    //server pipe
@@ -24,19 +24,14 @@ int tfs_mount(char const *client_pipe_path, char const *server_pipe_path) {
     unlink(client_pipe_path);
 
     if( mkfifo(client_pipe_path, 0777) == -1 ) {
-        printf("Error creating pipe");
-        exit(-1);
+        printf("Error creating pipe%s\n", strerror(errno));
     }
     memcpy(cl_path, client_pipe_path, 40);
     printf("Client created\n");
-    
-
-    
-
-    
-    char* messg = (char*) malloc(41);
-    sprintf(messg, "%c", TFS_OP_CODE_MOUNT + 48);
-    memcpy(messg + 1, client_pipe_path, MAX_INPUT);
+        
+    char messg[41];
+    messg[0] = TFS_OP_CODE_MOUNT;
+    strncpy(messg + 1, client_pipe_path, MAX_INPUT);
     server_pipe = open(server_pipe_path, O_WRONLY);
     printf("Server opened\n");
     if(server_pipe == -1){
@@ -44,7 +39,7 @@ int tfs_mount(char const *client_pipe_path, char const *server_pipe_path) {
         return -1;
     }
     write(server_pipe, messg, 41);
-    printf("Wrote to sv pipe");
+    printf("Wrote to sv pipe\n");
     fflush(stdout);
     client_pipe = open(client_pipe_path, O_RDONLY);
     printf("Client opened\n");
@@ -54,16 +49,15 @@ int tfs_mount(char const *client_pipe_path, char const *server_pipe_path) {
         return -1;
     }
    
-    if(client_pipe == -1){
-        printf("Error creating pipe");
-        return -1;
-    }
-    read(client_pipe, &id , sizeof(int));
-    printf("Terminnou read\n");
     
-
-    return 0;
+    if(read(client_pipe, &id , sizeof(int)) < 0){
+        printf("Error reading pipe%s\n", strerror(errno));
+    };
+    printf("Terminou read: id %d\n", id);
+    
     printf("Retornou\n");
+    return 0;
+   
 }
 
 int tfs_unmount() {
@@ -80,27 +74,30 @@ int tfs_unmount() {
 }
 
 int tfs_open(char const *name, int flags) {
-
-    char* messg = (char*) malloc(MAX_INPUT + 1 + 1 + 1); //40 DO CHAR + 1 DO OP_CODE + 1 DO ID + 1 DA FLAG
-    sprintf(messg, "%c", TFS_OP_CODE_OPEN);
-    memcpy(messg + 1, &id, sizeof(int));
-    memcpy(messg + 2, &name, MAX_INPUT);
-    memcpy(messg + 2 + MAX_INPUT, &flags, sizeof(int));
+    printf("opening %s\n", name);
+    char messg[sizeof(char) * MAX_INPUT + sizeof(int) * 3]; //40 DO CHAR + 1 DO OP_CODE + 1 DO ID + 1 DA FLAG
+    messg[0] = TFS_OP_CODE_OPEN;
+    strncpy(messg + sizeof(int), &id, sizeof(int));
+    strncpy(messg + sizeof(int) * 2, &name, MAX_INPUT);
+    strncpy(messg + sizeof(char) + sizeof(int) + sizeof(char) * MAX_INPUT, &flags, sizeof(int));
     
-    write(server_pipe, messg, MAX_INPUT + 1 + 1 + 1);
-    read(client_pipe, &id , sizeof(int));
+    write(server_pipe, messg, sizeof(char) * MAX_INPUT + sizeof(int) * 3);
+    printf("sent\n");
 
-    return -1;
+    int ret = 0;
+    read(client_pipe, &ret, sizeof(int));
+    printf("ret = %d\n", ret);
+    return ret;
 }
 
 int tfs_close(int fhandle) {
+
+    char messg[sizeof(int) * 3]; //40 DO CHAR + 1 DO OP_CODE + 1 DO ID + 1 DA FLAG
+    messg[0] = TFS_OP_CODE_CLOSE;
+    strncpy(messg + sizeof(int), &id, sizeof(int));
+    strncpy(messg + sizeof(int) * 2, &fhandle, sizeof(int));
     
-    char* messg = (char*) malloc(MAX_INPUT + 1 + 1); //40 DO CHAR + 1 DO OP_CODE + 1 DO ID + 1 DA FLAG
-    sprintf(messg, "%c", TFS_OP_CODE_CLOSE);
-    memcpy(messg + 1, &id, sizeof(int));
-    memcpy(messg + 2, &fhandle, MAX_INPUT);
-    
-    write(server_pipe, messg, MAX_INPUT + 1 + 1);
+    write(server_pipe, messg, sizeof(int) * 3);
     read(client_pipe, &id , sizeof(int));
 
     return -1;
@@ -108,25 +105,25 @@ int tfs_close(int fhandle) {
 
 ssize_t tfs_write(int fhandle, void const *buffer, size_t len) {
     
-    char* messg = (char*) malloc(1 + 1 + 1 + 1 + len); //40 DO CHAR + 1 DO OP_CODE + 1 DO ID + 1 DA FLAG
-    sprintf(messg, "%c", TFS_OP_CODE_WRITE);
-    memcpy(messg + 1, &id, sizeof(int));
-    memcpy(messg + 2, &fhandle, MAX_INPUT);
-    memcpy(messg + 3, len, sizeof(int));
-    memcpy(messg + len, &buffer, len);
+    char messg[sizeof(int) * 3 + sizeof(size_t) + sizeof(char) ];
+    messg[0] = TFS_OP_CODE_WRITE;
+    strncpy(messg + sizeof(int), &id, sizeof(int));
+    strncpy(messg + sizeof(int) * 2, &fhandle, sizeof(int));
+    strncpy(messg + sizeof(int) * 3, len, sizeof(int));
+    strncpy(messg + sizeof(int) * 3 + sizeof(size_t), &buffer, len);
 
-    write(server_pipe, messg, MAX_INPUT + 1 + 1 + 1 + len);
+    write(server_pipe, messg, sizeof(int) * 3 + sizeof(size_t));
     read(client_pipe, &id , sizeof(int));
     return -1;
 }
 
 ssize_t tfs_read(int fhandle, void *buffer, size_t len) {
     
-    char* messg = (char*) malloc(1 + 1 + 1 + 1); //40 DO CHAR + 1 DO OP_CODE + 1 DO ID + 1 DA FLAG
+    char messg[sizeof(int) * 2 + sizeof(size_t) ] //40 DO CHAR + 1 DO OP_CODE + 1 DO ID + 1 DA FLAG
     sprintf(messg, "%c", TFS_OP_CODE_READ);
-    memcpy(messg + 1, &id, sizeof(int));
-    memcpy(messg + 2, &fhandle, MAX_INPUT);
-    memcpy(messg + 3, len, sizeof(int));
+    strncpy(messg + 1, &id, sizeof(int));
+    strncpy(messg + 2, &fhandle, MAX_INPUT);
+    strncpy(messg + 3, len, sizeof(int));
     
     write(server_pipe, messg, MAX_INPUT + 1 + 1 + 1);
     read(client_pipe, &id , sizeof(int));
@@ -137,7 +134,7 @@ ssize_t tfs_read(int fhandle, void *buffer, size_t len) {
 int tfs_shutdown_after_all_closed() {
     char* messg = (char*) malloc(1 + 1); //40 DO CHAR + 1 DO OP_CODE + 1 DO ID + 1 DA FLAG
     sprintf(messg, "%c", TFS_OP_CODE_READ);
-    memcpy(messg + 1, &id, sizeof(int));
+    strncpy(messg + 1, &id, sizeof(int));
 
 
 

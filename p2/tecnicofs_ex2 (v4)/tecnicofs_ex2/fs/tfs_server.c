@@ -34,32 +34,38 @@ int ses(){
 
 
 void tfs_sv_mount(){
-    int id;
-    read(svfileopen, &id,sizeof(int));
-    printf("%d\n", id);
-    char* mbuffer = (char*) malloc(sizeof(char)*40);
+
+    char mbuffer[41];
     read(svfileopen, mbuffer, sizeof(char) * 40);
+    mbuffer[40] =0;
     int fcl = open(mbuffer, O_WRONLY);
     
-    if (fcl < 0)
-        printf("Error opening\n");
-    
-    if((id = ses()) == -2){
+    if (fcl < 0){
+         printf("Error opening %s : %s\n", mbuffer, strerror(errno));
+         return; 
 
-        printf("User found, changing\n");
-        if(write(fcl, &id, sizeof(int) < 0))
-            printf("Erro write client\n");
-        free(mbuffer);
+    }
+
+    int id = ses();
+    if(id == -2){
+
+        printf("User not found, changing\n");
+        if(write(fcl, &id, sizeof(int) < 0)){
+            printf("Error write client : %s\n", strerror(errno));
+            return;
+        }
 
     }
 
     else{
         
-        printf("User not found, adding\n");
+        printf("User found, adding\n");
         ses_id[id] = fcl;
-        if(write(fcl, &id, sizeof(int)) < 0)
-            printf("Erro write client\n");
-        free(mbuffer);
+        if(write(fcl, &id, sizeof(int)) < 0){
+            printf("Error write client : %s\n", strerror(errno));
+            return;
+        }
+
         printf("Mounted\n");
             
     }
@@ -149,10 +155,8 @@ void tfs_sv_write(){
 
 int main(int argc, char **argv) {
 
-    client_t client[S];
-    int actual_session;
-
     ses_id[0] = -1; 
+
     if (argc < 2) {
         printf("Please specify the pathname of the server's pipe.\n");
         return 1;
@@ -173,17 +177,17 @@ int main(int argc, char **argv) {
     svfileopen = open(pipename, O_RDONLY);
     printf("Pipe opened\n");
     fflush(stdout);
-    char buffer[2] = "\0";
+    char opcode = 0;
     tfs_init();
     int bufread; 
 
     
     while(1){
-        bufread = read(svfileopen, buffer, 1);
+        bufread = read(svfileopen, &opcode, 1);
         if(bufread != 1){
             exit(2);
         }
-        switch (atoi(buffer))
+        switch (opcode)
         {
         case TFS_OP_CODE_MOUNT :
             tfs_sv_mount();
