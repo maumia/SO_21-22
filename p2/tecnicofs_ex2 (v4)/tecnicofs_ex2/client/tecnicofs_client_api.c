@@ -126,11 +126,12 @@ ssize_t tfs_read(int fhandle, void *buffer, size_t len) {
     memcpy(messg + sizeof(char), &id, sizeof(int));
     memcpy(messg + sizeof(int) + sizeof(char), &fhandle, sizeof(int));
     memcpy(messg + 9, &len, sizeof(sizeof(size_t)));
-    memcpy(messg + 9 + sizeof(size_t), buffer, len);
     
-    ssize_t ret = 0;
-    write(server_pipe, messg, sizeof(int) * 2 + sizeof(size_t));
-    read(client_pipe, &ret , sizeof(int));
+    write(server_pipe,messg,sizeof(char) + sizeof(int) * 2 + sizeof(size_t) );
+    ssize_t ret = 0;   
+    read(client_pipe, &ret , sizeof(int)); //Está a funcionar
+    printf("Read1\n");
+    read(client_pipe, buffer , len);
     printf("Read\n");
     return ret;
 }
