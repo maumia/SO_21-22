@@ -35,9 +35,9 @@ int main(int argc, char **argv) {
     f = tfs_open(path, 0);
     assert(f != -1);
 
-    printf("Initiating read.\n");
+    
     r = tfs_read(f, buffer, sizeof(buffer) - 1);
-    printf("Read worked\n");
+   
 
     assert(r == strlen(str));
     
@@ -46,7 +46,7 @@ int main(int argc, char **argv) {
     assert(strcmp(buffer, str) == 0);
 
     assert(tfs_close(f) != -1);
-    printf("Close worked.\n");
+    
     assert(tfs_unmount() == 0);
 
     printf("Successful test.\n");

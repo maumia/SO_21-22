@@ -65,8 +65,6 @@ int tfs_unmount() {
         return -1;
     };
     unlink(client_pipe);
-
-    printf("Unmounted\n");
     return 0;
 }
 
@@ -142,7 +140,7 @@ ssize_t tfs_read(int fhandle, void *buffer, size_t len) {
         return -1;
     };
     
-    printf("Read\n");
+   
     return ret;
 }
 
