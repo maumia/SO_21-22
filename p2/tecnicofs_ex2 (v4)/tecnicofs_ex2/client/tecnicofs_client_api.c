@@ -62,12 +62,12 @@ int tfs_mount(char const *client_pipe_path, char const *server_pipe_path) {
 int tfs_unmount() {
     
     int res;
-    char* messg = (char*) malloc(1 + sizeof(int));
-    sprintf(messg, "%c", TFS_OP_CODE_UNMOUNT);
-    memcpy(messg + 1, &id, sizeof(int));
+    char messg[sizeof(char) + sizeof(int)];
+    messg[0] = TFS_OP_CODE_UNMOUNT;
+    memcpy(messg + 1, &id, sizeof(char));
     write(server_pipe, messg, 1 + sizeof(int));
     read(client_pipe, &res , sizeof(int));
-    unlink(cl_path);
+    unlink(client_pipe);
 
     printf("Unmounted\n");
     return 0;
@@ -129,9 +129,10 @@ ssize_t tfs_read(int fhandle, void *buffer, size_t len) {
     
     write(server_pipe,messg,sizeof(char) + sizeof(int) * 2 + sizeof(size_t) );
     ssize_t ret = 0;   
-    read(client_pipe, &ret , sizeof(int)); //Está a funcionar
+    if(read(client_pipe, &ret , sizeof(ssize_t)) < 0)
+        printf("Erro no read: %s", strerror(errno)); //Está a funcionar
     printf("Read1\n");
-    read(client_pipe, buffer , len);
+    // read(client_pipe, buffer , len);
     printf("Read\n");
     return ret;
 }
