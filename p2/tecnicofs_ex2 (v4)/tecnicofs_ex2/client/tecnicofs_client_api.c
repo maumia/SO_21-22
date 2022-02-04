@@ -31,7 +31,7 @@ int tfs_mount(char const *client_pipe_path, char const *server_pipe_path) {
         
     char messg[41];
     messg[0] = TFS_OP_CODE_MOUNT;
-    strncpy(messg + 1, client_pipe_path, MAX_INPUT);
+    memcpy(messg + 1, client_pipe_path, MAX_INPUT);
     server_pipe = open(server_pipe_path, O_WRONLY);
     printf("Server opened\n");
     if(server_pipe == -1){
@@ -53,9 +53,8 @@ int tfs_mount(char const *client_pipe_path, char const *server_pipe_path) {
     if(read(client_pipe, &id , sizeof(int)) < 0){
         printf("Error reading pipe%s\n", strerror(errno));
     };
-    printf("Terminou read: id %d\n", id);
-    
-    printf("Retornou\n");
+
+    printf("Mounted\n");
     return 0;
    
 }
@@ -70,23 +69,24 @@ int tfs_unmount() {
     read(client_pipe, &res , sizeof(int));
     unlink(cl_path);
 
-    return res;
+    printf("Unmounted\n");
+    return 0;
 }
 
 int tfs_open(char const *name, int flags) {
-    printf("opening %s\n", name);
-    char messg[sizeof(char) * MAX_INPUT + sizeof(int) * 3]; 
+    char messg[sizeof(char) + sizeof(char) * MAX_INPUT + sizeof(int) * 2]; 
     messg[0] = TFS_OP_CODE_OPEN;
-    strncpy(messg + sizeof(int), &id, sizeof(int));
-    strncpy(messg + sizeof(int) * 2, &name, MAX_INPUT);
-    strncpy(messg + sizeof(char) + sizeof(int) + sizeof(char) * MAX_INPUT, &flags, sizeof(int));
+    memcpy(messg + sizeof(char), &id, sizeof(int));
+    memcpy(messg + sizeof(int) + sizeof(char), name, MAX_INPUT);
+    memcpy(messg + sizeof(char) + sizeof(int) + sizeof(char) * MAX_INPUT, &flags, sizeof(int));
     
-    write(server_pipe, messg, sizeof(char) * MAX_INPUT + sizeof(int) * 3);
-    printf("sent\n");
+    if(write(server_pipe, messg, sizeof(char) + sizeof(char) * MAX_INPUT + sizeof(int) * 3) < 0)
+        printf("Error writting to sv: %s", strerror(errno));
+    
 
     int ret = 0;
     read(client_pipe, &ret, sizeof(int));
-    printf("ret = %d\n", ret);
+    printf("Opened\n");
     return ret;
 }
 
@@ -94,47 +94,51 @@ int tfs_close(int fhandle) {
 
     char messg[sizeof(int) * 3]; 
     messg[0] = TFS_OP_CODE_CLOSE;
-    strncpy(messg + sizeof(int), &id, sizeof(int));
-    strncpy(messg + sizeof(int) * 2, &fhandle, sizeof(int));
+    memcpy(messg + sizeof(char), &id, sizeof(int));
+    memcpy(messg + sizeof(int) * 2, &fhandle, sizeof(int));
     
     write(server_pipe, messg, sizeof(int) * 3);
     read(client_pipe, &id , sizeof(int));
-
-    return -1;
+    printf("Closed\n");
+    return 0;
 }
 
 ssize_t tfs_write(int fhandle, void const *buffer, size_t len) {
     
-    char messg[sizeof(int) * 3 + sizeof(size_t) + sizeof(char) ];
+    char messg[sizeof(int) * 2 + sizeof(size_t) + sizeof(char) + len];
     messg[0] = TFS_OP_CODE_WRITE;
-    strncpy(messg + sizeof(int), &id, sizeof(int));
-    strncpy(messg + sizeof(int) * 2, &fhandle, sizeof(int));
-    strncpy(messg + sizeof(int) * 3, len, sizeof(int));
-    strncpy(messg + sizeof(int) * 3 + sizeof(size_t), &buffer, len);
+    memcpy(messg + sizeof(char), &id, sizeof(int));
+    memcpy(messg + sizeof(int) + sizeof(char), &fhandle, sizeof(int));
+    memcpy(messg + 9, &len, sizeof(sizeof(size_t)));
+    memcpy(messg + 9 + sizeof(size_t), buffer, len);
 
-    write(server_pipe, messg, sizeof(int) * 3 + sizeof(size_t));
-    read(client_pipe, &id , sizeof(int));
-    return -1;
+    ssize_t ret = 0;
+    write(server_pipe, messg, 9 + sizeof(size_t) + len);
+    read(client_pipe, &ret , sizeof(ssize_t));
+    printf("Wrote\n");
+    return ret; 
 }
 
 ssize_t tfs_read(int fhandle, void *buffer, size_t len) {
     
-    char messg[sizeof(int) * 2 + sizeof(size_t)];
+    char messg[sizeof(char) + sizeof(int) * 2 + sizeof(size_t)];
     messg[0] = TFS_OP_CODE_READ;
-    strncpy(messg + 1, &id, sizeof(int));
-    strncpy(messg + 2, &fhandle, MAX_INPUT);
-    strncpy(messg + 3, len, sizeof(int));
+    memcpy(messg + sizeof(char), &id, sizeof(int));
+    memcpy(messg + sizeof(int) + sizeof(char), &fhandle, sizeof(int));
+    memcpy(messg + 9, &len, sizeof(sizeof(size_t)));
+    memcpy(messg + 9 + sizeof(size_t), buffer, len);
     
+    ssize_t ret = 0;
     write(server_pipe, messg, sizeof(int) * 2 + sizeof(size_t));
-    read(client_pipe, &id , sizeof(int));
-
-    return -1;
+    read(client_pipe, &ret , sizeof(int));
+    printf("Read\n");
+    return ret;
 }
 
 int tfs_shutdown_after_all_closed() {
-    char messg[sizeof(int) * 2];
+    char messg[sizeof(char) + sizeof(int)];
     messg[0] = TFS_OP_CODE_READ;
-    strncpy(messg + 1, &id, sizeof(int));
+    memcpy(messg + 1, &id, sizeof(int));
 
 
 

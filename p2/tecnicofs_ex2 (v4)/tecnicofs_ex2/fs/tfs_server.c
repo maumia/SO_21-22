@@ -66,92 +66,104 @@ void tfs_sv_mount(){
             return;
         }
 
-        printf("Mounted\n");
+        
             
     }
 
 }
-/*
+
 void tfs_sv_unmount(){
 
     int id;
     read(svfileopen, &id,sizeof(int));
-    int fcl = open(mbuffer, O_WRONLY);
-    if (fcl != 1){
-
-        printf("Error opening");
-        exit(2);
-
-    }
-    fcl = ses_id[id];
-    close(fcl);
     ses_id[id] = -2;
+    close(fcl);
+    
 }
-*/
+
 void tfs_sv_open(){
 
     int id;
-    char const* name;
+    char name[40];
     int flags;
-    
-    char mbuffer[sizeof(int) * 2 + sizeof(char) * 40];
+
     read(svfileopen, &id, sizeof(int));
     read(svfileopen, &name, sizeof(char)*40);
     read(svfileopen, &flags, sizeof(int));
-    mbuffer[sizeof(int) * 2 + sizeof(char) * 40 - 1] = 0;
-    int fcl = open(svfileopen, O_WRONLY);
-    if (fcl < 0){
-
-        printf("Error opening : %s\n", strerror(errno));
+    int ret = 0;
+    ret = tfs_open(name , flags);
+    if(write(fcl, &ret, sizeof(int)) < 0){
+        printf("Error write client : %s\n", strerror(errno));
         return;
     }
-  
-    tfs_open(&name , flags);
+
+    printf("Opened\n");
+    fflush(stdout);
+            
+    
 
 }
-/*
+
 void tfs_sv_close(){
 
     int id;
     int fhandle;
-
     read(svfileopen, &id, sizeof(int));
-    read(svfileopen + sizeof(int), &fhandle, sizeof(int));
-    int fcl = open(mbuffer, O_WRONLY);
-    if (fcl != 1){
-
-        printf("Error opening");
-        exit(2);
-
+    read(svfileopen, &fhandle, sizeof(int));
+    int ret = 0;
+    ret = tfs_close(fhandle);
+    if(write(fcl, &ret, sizeof(int)) < 0){
+        printf("Error write client : %s\n", strerror(errno));
+        return;
     }
-    int fcl = ses_id[id];
 
-    tfs_close(fhandle);
-
+    printf("Closed\n");
 
 }
-*/
+
 void tfs_sv_write(){
 
     int id;
     int fhandle;
     size_t len;
-    char buff_cont[len];
-
-    printf("Starting tfs_write\n");
+    
     read(svfileopen , &id, sizeof(int));
     read(svfileopen , &fhandle, sizeof(int));
     read(svfileopen , &len, sizeof(size_t));
+    char buff_cont[len];
     read(svfileopen , buff_cont, len);
 
 
-    size_t res = tfs_write(fhandle, buff_cont, len);
-    write(ses_id[id], &res, sizeof(int));
-    printf("tfs_write done\n");
+    ssize_t ret = tfs_write(fhandle, buff_cont, len);
+    if(write(fcl, &ret, sizeof(ssize_t)) < 0){
+        printf("Error write client : %s\n", strerror(errno));
+        return;
+    }    
+}
+
+void tfs_sv_read(){
+    int id;
+    int fhandle;
+    size_t len;
     
 
+    printf("Starting tfs_read\n");
+    read(svfileopen , &id, sizeof(int));
+    read(svfileopen , &fhandle, sizeof(int));
+    read(svfileopen , &len, sizeof(size_t));
+    char buff_cont[len];
+    read(svfileopen , buff_cont, len);
 
+
+    ssize_t ret = tfs_read(fhandle, buff_cont, len);
+    if(write(fcl, &ret, sizeof(ssize_t)) < 0){
+        printf("Error write client : %s\n", strerror(errno));
+        return;
+    }   
 }
+
+
+
 
 int main(int argc, char **argv) {
 
@@ -165,25 +177,20 @@ int main(int argc, char **argv) {
     char *pipename = argv[1];
     printf("Starting TecnicoFS server with pipe called %s\n", pipename);
     unlink(pipename);
-    printf("Input received\n");
     int create = mkfifo(pipename, 0777);
     if( create == -1 ) {
         if (errno != EEXIST){                         //verifica que  o erro não é o named pipe já existir
             return -1;
         }
     }
-    printf("Pipe created\n");
-    fflush(stdout);
     svfileopen = open(pipename, O_RDONLY);
-    printf("Pipe opened\n");
-    fflush(stdout);
     char opcode = 0;
     tfs_init();
-    int bufread; 
+    ssize_t bufread; 
 
     
     while(1){
-        bufread = read(svfileopen, &opcode, 1);
+        bufread = read(svfileopen, &opcode, sizeof(char));
         if(bufread != 1){
             exit(2);
         }
@@ -191,34 +198,33 @@ int main(int argc, char **argv) {
         {
         case TFS_OP_CODE_MOUNT :
             tfs_sv_mount();
-            printf("tfs_sv_mount done\n");
             break;
         
         case TFS_OP_CODE_UNMOUNT :
-            // tfs_sv_unmount();
+            tfs_sv_unmount();
             break;
 
         case TFS_OP_CODE_OPEN : 
-            printf("tfs_open starting\n");
             tfs_sv_open();
-            printf("tfs_open done\n");
             break;
         
         case TFS_OP_CODE_CLOSE :
-            // tfs_sv_close();
+            tfs_sv_close();
             break;
 
         case TFS_OP_CODE_WRITE : 
             tfs_sv_write();
-            printf("tfs_write done\n");
             break;
         
         case TFS_OP_CODE_READ :
+            tfs_sv_read();
             break;
 
         case TFS_OP_CODE_SHUTDOWN_AFTER_ALL_CLOSED :
             break;
-        
+
+        default:
+            break;
         
         
         
