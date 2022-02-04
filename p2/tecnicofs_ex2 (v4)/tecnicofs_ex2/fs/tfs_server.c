@@ -88,7 +88,7 @@ void tfs_sv_open(){
     read(svfileopen, &id, sizeof(int));
     read(svfileopen, &name, sizeof(char)*40);
     read(svfileopen, &flags, sizeof(int));
-    int ret = 0;
+    int ret;
     ret = tfs_open(name , flags);
     if(write(fcl, &ret, sizeof(int)) < 0){
         printf("Error write client : %s\n", strerror(errno));
@@ -102,7 +102,7 @@ void tfs_sv_close(){
     int fhandle;
     read(svfileopen, &id, sizeof(int));
     read(svfileopen, &fhandle, sizeof(int));
-    int ret = 0;
+    int ret ;
     ret = tfs_close(fhandle);
     if(write(fcl, &ret, sizeof(int)) < 0){
         printf("Error write client : %s\n", strerror(errno));
@@ -141,13 +141,13 @@ void tfs_sv_read(){
     read(svfileopen , &id, sizeof(int));
     read(svfileopen , &fhandle, sizeof(int));
     read(svfileopen , &len, sizeof(size_t));
-    char buffs_cont[len];
-    ret = tfs_read(fhandle, buffs_cont, len);
+    char buff_cont[len];
+    ret = tfs_read(fhandle, buff_cont, len);
     if(write(fcl, &ret, sizeof(ssize_t)) < 0){
         printf("Error write client : %s\n", strerror(errno));
         return;
     }
-    // write(fcl, buff_cont, len);  
+    write(fcl, buff_cont, len);  
 }
 
 void tfs_sv_shutdownafterclose(){

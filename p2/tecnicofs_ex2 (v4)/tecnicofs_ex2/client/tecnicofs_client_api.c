@@ -77,11 +77,11 @@ int tfs_open(char const *name, int flags) {
     memcpy(messg + sizeof(int) + sizeof(char), name, MAX_INPUT);
     memcpy(messg + sizeof(char) + sizeof(int) + sizeof(char) * MAX_INPUT, &flags, sizeof(int));
     
-    if(write(server_pipe, messg, sizeof(char) + sizeof(char) * MAX_INPUT + sizeof(int) * 3) < 0)
+    if(write(server_pipe, messg, sizeof(char) + sizeof(char) * MAX_INPUT + sizeof(int) * 2) < 0)
         printf("Error writting to sv: %s", strerror(errno));
     
 
-    int ret = 0;
+    int ret;
     if(read(client_pipe, &ret, sizeof(int)) < 0){
         printf("Error reading %s\n", strerror(errno));
         return -1;
@@ -113,7 +113,7 @@ ssize_t tfs_write(int fhandle, void const *buffer, size_t len) {
     memcpy(messg + 9, &len, sizeof(sizeof(size_t)));
     memcpy(messg + 9 + sizeof(size_t), buffer, len);
 
-    ssize_t ret = 0;
+    ssize_t ret;
     write(server_pipe, messg, 9 + sizeof(size_t) + len);
     if(read(client_pipe, &ret , sizeof(ssize_t)) < 0){
         printf("Error reading %s\n", strerror(errno));
@@ -131,17 +131,17 @@ ssize_t tfs_read(int fhandle, void *buffer, size_t len) {
     memcpy(messg + 9, &len, sizeof(sizeof(size_t)));
     
     write(server_pipe,messg,sizeof(char) + sizeof(int) * 2 + sizeof(size_t) );
-    ssize_t ret = 0;   
+    ssize_t ret;   
     if(read(client_pipe, &ret , sizeof(ssize_t)) < 0){
         printf("Error reading %s\n", strerror(errno));
         return -1;
     };
-    /*
+    
     if(read(client_pipe, buffer , len) < 0){
         printf("Error reading %s\n", strerror(errno));
         return -1;
     };
-    */
+    
     printf("Read\n");
     return ret;
 }
