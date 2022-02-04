@@ -49,7 +49,6 @@ void tfs_sv_mount(){
     int id = ses();
     if(id == -2){
 
-        printf("User not found, changing\n");
         if(write(fcl, &id, sizeof(int) < 0)){
             printf("Error write client : %s\n", strerror(errno));
             return;
@@ -59,7 +58,6 @@ void tfs_sv_mount(){
 
     else{
         
-        printf("User found, adding\n");
         ses_id[id] = fcl;
         if(write(fcl, &id, sizeof(int)) < 0){
             printf("Error write client : %s\n", strerror(errno));
@@ -143,8 +141,8 @@ void tfs_sv_read(){
     read(svfileopen , &id, sizeof(int));
     read(svfileopen , &fhandle, sizeof(int));
     read(svfileopen , &len, sizeof(size_t));
-    char buff_cont[len];
-    ret = tfs_read(fhandle, buff_cont, len);
+    char buffs_cont[len];
+    ret = tfs_read(fhandle, buffs_cont, len);
     if(write(fcl, &ret, sizeof(ssize_t)) < 0){
         printf("Error write client : %s\n", strerror(errno));
         return;

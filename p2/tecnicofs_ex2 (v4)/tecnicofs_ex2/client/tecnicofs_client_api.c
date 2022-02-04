@@ -27,23 +27,17 @@ int tfs_mount(char const *client_pipe_path, char const *server_pipe_path) {
         printf("Error creating pipe%s\n", strerror(errno));
     }
     memcpy(cl_path, client_pipe_path, 40);
-    printf("Client created\n");
         
     char messg[41];
     messg[0] = TFS_OP_CODE_MOUNT;
     memcpy(messg + 1, client_pipe_path, MAX_INPUT);
     server_pipe = open(server_pipe_path, O_WRONLY);
-    printf("Server opened\n");
     if(server_pipe == -1){
         printf("Error opening server pipe");
         return -1;
     }
     write(server_pipe, messg, 41);
-    printf("Wrote to sv pipe\n");
-    fflush(stdout);
     client_pipe = open(client_pipe_path, O_RDONLY);
-    printf("Client opened\n");
-    fflush(stdout);
     if(client_pipe <= 0){
         printf("Error opening client pipe");
         return -1;
@@ -55,7 +49,6 @@ int tfs_mount(char const *client_pipe_path, char const *server_pipe_path) {
         return -1;
     };
 
-    printf("Mounted\n");
     return 0;
    
 }
@@ -93,7 +86,6 @@ int tfs_open(char const *name, int flags) {
         printf("Error reading %s\n", strerror(errno));
         return -1;
     };
-    printf("Opened\n");
     return ret;
 }
 
@@ -109,7 +101,6 @@ int tfs_close(int fhandle) {
         printf("Error reading %s\n", strerror(errno));
         return -1;
     };
-    printf("Closed\n");
     return 0;
 }
 
@@ -128,7 +119,6 @@ ssize_t tfs_write(int fhandle, void const *buffer, size_t len) {
         printf("Error reading %s\n", strerror(errno));
         return -1;
     };
-    printf("Wrote\n");
     return ret; 
 }
 
@@ -146,7 +136,6 @@ ssize_t tfs_read(int fhandle, void *buffer, size_t len) {
         printf("Error reading %s\n", strerror(errno));
         return -1;
     };
-    printf("Read1\n");
     /*
     if(read(client_pipe, buffer , len) < 0){
         printf("Error reading %s\n", strerror(errno));
