@@ -6,6 +6,11 @@
 #include <string.h>
 #include <unistd.h>
 
+int free_db = 12 * 50;
+int used_db = 0;
+int handles_ret = 0;
+int inodes_ret =0;
+
 /* Persistent FS state  (in reality, it should be maintained in secondary
  * memory; for simplicity, this project maintains it in primary memory) */
 
@@ -128,6 +133,7 @@ int inode_create(inode_type n_type) {
                 inode_table[inumber].i_size = 0;
                 inode_table[inumber].i_data_block = -1;
             }
+            inodes_ret++;
             return inumber;
         }
     }
@@ -156,7 +162,7 @@ int inode_delete(int inumber) {
             return -1;
         }
     }
-
+    inodes_ret--;
     return 0;
 }
 
@@ -260,6 +266,8 @@ int data_block_alloc() {
 
         if (free_blocks[i] == FREE) {
             free_blocks[i] = TAKEN;
+            used_db ++;
+            free_db--;
             return i;
         }
     }
@@ -278,6 +286,9 @@ int data_block_free(int block_number) {
 
     insert_delay(); // simulate storage access delay to free_blocks
     free_blocks[block_number] = FREE;
+
+    free_db ++;
+    used_db--;
     return 0;
 }
 

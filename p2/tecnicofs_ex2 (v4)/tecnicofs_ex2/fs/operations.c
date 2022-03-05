@@ -8,6 +8,15 @@
 static pthread_mutex_t single_global_lock;
 pthread_cond_t cond_lock;
 
+int inodes = 0;
+int handles = 0;
+int f_blocks = 0;
+int u_blocks = 0;
+int op = 0;
+int cl = 0;
+int rd = 0;
+int wrt =0;
+
 int tfs_init() {
     state_init();
 
@@ -128,9 +137,11 @@ int tfs_open(char const *name, int flags) {
     if (pthread_mutex_lock(&single_global_lock) != 0)
         return -1;
     int ret = _tfs_open_unsynchronized(name, flags);
+    op++;
     if (pthread_mutex_unlock(&single_global_lock) != 0)
         return -1;
 
+    
     return ret;
 }
 
@@ -146,6 +157,7 @@ int tfs_close(int fhandle) {
     if (pthread_mutex_unlock(&single_global_lock) != 0)
         return -1;
 
+    cl++;
     return r;
 }
 
@@ -198,7 +210,7 @@ ssize_t tfs_write(int fhandle, void const *buffer, size_t to_write) {
     ssize_t ret = _tfs_write_unsynchronized(fhandle, buffer, to_write);
     if (pthread_mutex_unlock(&single_global_lock) != 0)
         return -1;
-
+    wrt++;
     return ret;
 }
 
@@ -242,6 +254,24 @@ ssize_t tfs_read(int fhandle, void *buffer, size_t len) {
     ssize_t ret = _tfs_read_unsynchronized(fhandle, buffer, len);
     if (pthread_mutex_unlock(&single_global_lock) != 0)
         return -1;
-
+    rd++;
     return ret;
+}
+
+void tfs_print_stats(){
+
+int inodes = 0;
+int handles = 0;
+int f_blocks = 0;
+int u_blocks = 0;
+int op = 0;
+int cl = 0;
+int read = 0;
+int write =0;
+
+
+
+
+
+printf("#OPEN/CLOSE/READ/WRITE: %d / %d / %d / %d", op,cl,rd,wrt);
 }
